@@ -37,9 +37,10 @@ import TaskList from "./pages/app/tasks/TaskList";
 import TaskCreate from "./pages/app/tasks/TaskCreate";
 import AuditLog from "./pages/app/audit/AuditLog";
 import SettingsPage from "./pages/app/settings/SettingsPage";
+import ReportsPage from "./pages/app/reports/ReportsPage";
 import NotFound from "./pages/NotFound";
 import {
-  Star, FolderOpen, BarChart3, MessageSquare, CreditCard
+  Star, FolderOpen, MessageSquare, CreditCard
 } from "lucide-react";
 
 const queryClient = new QueryClient();
@@ -117,7 +118,7 @@ const App = () => (
               {/* Remaining placeholders */}
               <Route path="reviews" element={<PlaceholderPage title="Review Booster" description="Automated review request campaigns" icon={Star} />} />
               <Route path="documents" element={<PlaceholderPage title="Documents" description="File manager and document generation" icon={FolderOpen} />} />
-              <Route path="reports" element={<PlaceholderPage title="Reports & KPIs" description="Performance metrics and exports" icon={BarChart3} />} />
+              <Route path="reports" element={<ReportsPage />} />
               <Route path="support" element={<PlaceholderPage title="Support Tickets" description="Get help from the DealerOps team" icon={MessageSquare} />} />
               <Route path="billing" element={<PlaceholderPage title="Billing & Plan" description="Manage your subscription" icon={CreditCard} />} />
             </Route>
