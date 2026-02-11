@@ -72,7 +72,25 @@ serve(async (req) => {
         console.error("DVLA fetch failed:", e);
       }
     } else {
-      console.warn("DVLA_API_KEY not configured");
+      console.warn("DVLA_API_KEY not configured – using mock data");
+      dvlaData = {
+        registrationNumber: cleanVrm,
+        taxStatus: "Taxed",
+        taxDueDate: "2026-08-01",
+        motStatus: "Valid",
+        motExpiryDate: "2026-11-15",
+        make: "BMW",
+        yearOfManufacture: 2021,
+        engineCapacity: 1998,
+        co2Emissions: 128,
+        fuelType: "PETROL",
+        colour: "BLACK",
+        typeApproval: "M1",
+        wheelplan: "2 AXLE RIGID BODY",
+        monthOfFirstRegistration: "2021-03",
+        markedForExport: false,
+        dateOfLastV5CIssued: "2024-06-12",
+      };
     }
 
     // ---- DVSA MOT API ----
@@ -90,7 +108,6 @@ serve(async (req) => {
         );
         if (dvsaRes.ok) {
           const dvsaJson = await dvsaRes.json();
-          // DVSA returns an array; extract MOT tests from the first result
           if (Array.isArray(dvsaJson) && dvsaJson.length > 0) {
             dvsaData = dvsaJson[0].motTests || dvsaJson[0];
           }
@@ -101,7 +118,37 @@ serve(async (req) => {
         console.error("DVSA fetch failed:", e);
       }
     } else {
-      console.warn("DVSA_API_KEY not configured");
+      console.warn("DVSA_API_KEY not configured – using mock data");
+      dvsaData = [
+        {
+          completedDate: "2025-11-15",
+          testResult: "PASSED",
+          odometerValue: "42350",
+          odometerUnit: "mi",
+          expiryDate: "2026-11-15",
+          rfrAndComments: [
+            { text: "Nearside front tyre worn close to legal limit (5.2.3 (e))", type: "ADVISORY" },
+          ],
+        },
+        {
+          completedDate: "2024-11-10",
+          testResult: "PASSED",
+          odometerValue: "31200",
+          odometerUnit: "mi",
+          expiryDate: "2025-11-10",
+          rfrAndComments: [],
+        },
+        {
+          completedDate: "2023-11-08",
+          testResult: "FAILED",
+          odometerValue: "19800",
+          odometerUnit: "mi",
+          rfrAndComments: [
+            { text: "Offside rear brake pad worn below 1.5mm (1.1.13 (a) (ii))", type: "FAIL" },
+            { text: "Windscreen wiper blade deteriorated (3.4 (b) (ii))", type: "FAIL" },
+          ],
+        },
+      ];
     }
 
     // ---- Global Vehicle Data (GVD) API ----
@@ -126,7 +173,18 @@ serve(async (req) => {
         console.error("GVD fetch failed:", e);
       }
     } else {
-      console.warn("GVD_API_KEY not configured");
+      console.warn("GVD_API_KEY not configured – using mock data");
+      gvdData = {
+        numberOfOwners: 2,
+        v5cCount: 3,
+        plateChangeCount: 0,
+        vehicleClass: "Car",
+        bodyType: "Saloon",
+        doors: 4,
+        seats: 5,
+        grossWeight: 1950,
+        insuranceGroup: "28E",
+      };
     }
 
     // Store the check in the database
