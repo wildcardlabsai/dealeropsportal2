@@ -61,6 +61,64 @@ export type Database = {
           },
         ]
       }
+      communication_logs: {
+        Row: {
+          content: string | null
+          created_at: string
+          created_by_user_id: string | null
+          customer_id: string | null
+          dealer_id: string
+          id: string
+          log_type: string
+          subject: string | null
+          vehicle_id: string | null
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          created_by_user_id?: string | null
+          customer_id?: string | null
+          dealer_id: string
+          id?: string
+          log_type: string
+          subject?: string | null
+          vehicle_id?: string | null
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          created_by_user_id?: string | null
+          customer_id?: string | null
+          dealer_id?: string
+          id?: string
+          log_type?: string
+          subject?: string | null
+          vehicle_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "communication_logs_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "communication_logs_dealer_id_fkey"
+            columns: ["dealer_id"]
+            isOneToOne: false
+            referencedRelation: "dealers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "communication_logs_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_leads: {
         Row: {
           created_at: string
@@ -96,6 +154,83 @@ export type Database = {
           status?: string
         }
         Relationships: []
+      }
+      customers: {
+        Row: {
+          address_line1: string | null
+          address_line2: string | null
+          city: string | null
+          consent_marketing: boolean
+          consent_marketing_at: string | null
+          created_at: string
+          dealer_id: string
+          deleted_at: string | null
+          email: string | null
+          first_name: string
+          id: string
+          is_deleted: boolean
+          last_name: string
+          notes: string | null
+          phone: string | null
+          postcode: string | null
+          preferred_contact_method:
+            | Database["public"]["Enums"]["contact_method"]
+            | null
+          updated_at: string
+        }
+        Insert: {
+          address_line1?: string | null
+          address_line2?: string | null
+          city?: string | null
+          consent_marketing?: boolean
+          consent_marketing_at?: string | null
+          created_at?: string
+          dealer_id: string
+          deleted_at?: string | null
+          email?: string | null
+          first_name: string
+          id?: string
+          is_deleted?: boolean
+          last_name: string
+          notes?: string | null
+          phone?: string | null
+          postcode?: string | null
+          preferred_contact_method?:
+            | Database["public"]["Enums"]["contact_method"]
+            | null
+          updated_at?: string
+        }
+        Update: {
+          address_line1?: string | null
+          address_line2?: string | null
+          city?: string | null
+          consent_marketing?: boolean
+          consent_marketing_at?: string | null
+          created_at?: string
+          dealer_id?: string
+          deleted_at?: string | null
+          email?: string | null
+          first_name?: string
+          id?: string
+          is_deleted?: boolean
+          last_name?: string
+          notes?: string | null
+          phone?: string | null
+          postcode?: string | null
+          preferred_contact_method?:
+            | Database["public"]["Enums"]["contact_method"]
+            | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customers_dealer_id_fkey"
+            columns: ["dealer_id"]
+            isOneToOne: false
+            referencedRelation: "dealers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       dealers: {
         Row: {
@@ -221,6 +356,140 @@ export type Database = {
           },
         ]
       }
+      vehicle_checks: {
+        Row: {
+          created_at: string
+          created_by_user_id: string | null
+          dealer_id: string
+          dvla_data: Json | null
+          dvsa_data: Json | null
+          gvd_data: Json | null
+          id: string
+          vrm: string
+        }
+        Insert: {
+          created_at?: string
+          created_by_user_id?: string | null
+          dealer_id: string
+          dvla_data?: Json | null
+          dvsa_data?: Json | null
+          gvd_data?: Json | null
+          id?: string
+          vrm: string
+        }
+        Update: {
+          created_at?: string
+          created_by_user_id?: string | null
+          dealer_id?: string
+          dvla_data?: Json | null
+          dvsa_data?: Json | null
+          gvd_data?: Json | null
+          id?: string
+          vrm?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_checks_dealer_id_fkey"
+            columns: ["dealer_id"]
+            isOneToOne: false
+            referencedRelation: "dealers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vehicles: {
+        Row: {
+          advertised_price: number | null
+          colour: string | null
+          created_at: string
+          customer_id: string | null
+          dealer_id: string
+          deleted_at: string | null
+          derivative: string | null
+          fuel_type: Database["public"]["Enums"]["fuel_type"] | null
+          id: string
+          is_deleted: boolean
+          location: Database["public"]["Enums"]["vehicle_location"]
+          make: string | null
+          mileage: number | null
+          model: string | null
+          notes: string | null
+          purchase_date: string | null
+          purchase_price: number | null
+          status: Database["public"]["Enums"]["vehicle_status"]
+          transmission: Database["public"]["Enums"]["transmission_type"] | null
+          updated_at: string
+          vin: string | null
+          vrm: string | null
+          year: number | null
+        }
+        Insert: {
+          advertised_price?: number | null
+          colour?: string | null
+          created_at?: string
+          customer_id?: string | null
+          dealer_id: string
+          deleted_at?: string | null
+          derivative?: string | null
+          fuel_type?: Database["public"]["Enums"]["fuel_type"] | null
+          id?: string
+          is_deleted?: boolean
+          location?: Database["public"]["Enums"]["vehicle_location"]
+          make?: string | null
+          mileage?: number | null
+          model?: string | null
+          notes?: string | null
+          purchase_date?: string | null
+          purchase_price?: number | null
+          status?: Database["public"]["Enums"]["vehicle_status"]
+          transmission?: Database["public"]["Enums"]["transmission_type"] | null
+          updated_at?: string
+          vin?: string | null
+          vrm?: string | null
+          year?: number | null
+        }
+        Update: {
+          advertised_price?: number | null
+          colour?: string | null
+          created_at?: string
+          customer_id?: string | null
+          dealer_id?: string
+          deleted_at?: string | null
+          derivative?: string | null
+          fuel_type?: Database["public"]["Enums"]["fuel_type"] | null
+          id?: string
+          is_deleted?: boolean
+          location?: Database["public"]["Enums"]["vehicle_location"]
+          make?: string | null
+          mileage?: number | null
+          model?: string | null
+          notes?: string | null
+          purchase_date?: string | null
+          purchase_price?: number | null
+          status?: Database["public"]["Enums"]["vehicle_status"]
+          transmission?: Database["public"]["Enums"]["transmission_type"] | null
+          updated_at?: string
+          vin?: string | null
+          vrm?: string | null
+          year?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicles_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vehicles_dealer_id_fkey"
+            columns: ["dealer_id"]
+            isOneToOne: false
+            referencedRelation: "dealers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -236,7 +505,23 @@ export type Database = {
     }
     Enums: {
       app_role: "super_admin" | "dealer_admin" | "dealer_user"
+      contact_method: "phone" | "email" | "whatsapp" | "post"
       dealer_status: "active" | "suspended" | "pending"
+      fuel_type:
+        | "petrol"
+        | "diesel"
+        | "electric"
+        | "hybrid"
+        | "plug_in_hybrid"
+        | "other"
+      transmission_type: "manual" | "automatic" | "other"
+      vehicle_location: "on_site" | "garage" | "customer" | "other"
+      vehicle_status:
+        | "in_stock"
+        | "reserved"
+        | "sold"
+        | "in_repair"
+        | "returned"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -365,7 +650,19 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["super_admin", "dealer_admin", "dealer_user"],
+      contact_method: ["phone", "email", "whatsapp", "post"],
       dealer_status: ["active", "suspended", "pending"],
+      fuel_type: [
+        "petrol",
+        "diesel",
+        "electric",
+        "hybrid",
+        "plug_in_hybrid",
+        "other",
+      ],
+      transmission_type: ["manual", "automatic", "other"],
+      vehicle_location: ["on_site", "garage", "customer", "other"],
+      vehicle_status: ["in_stock", "reserved", "sold", "in_repair", "returned"],
     },
   },
 } as const
