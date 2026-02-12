@@ -29,13 +29,30 @@ export function useVehicleChecks(search?: string) {
   });
 }
 
+export function useVehicleCheck(id: string | undefined) {
+  return useQuery({
+    queryKey: ["vehicle-check", id],
+    queryFn: async () => {
+      if (!id) return null;
+      const { data, error } = await supabase
+        .from("vehicle_checks")
+        .select("*")
+        .eq("id", id)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id,
+  });
+}
+
 export function useRunVehicleCheck() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const { data: dealerId } = useUserDealerId();
 
   return useMutation({
-    mutationFn: async (vrm: string) => {
+    mutationFn: async ({ vrm, forceFresh = false }: { vrm: string; forceFresh?: boolean }) => {
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData?.session?.access_token;
 
@@ -48,7 +65,7 @@ export function useRunVehicleCheck() {
             Authorization: `Bearer ${token}`,
             apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
           },
-          body: JSON.stringify({ vrm, dealer_id: dealerId }),
+          body: JSON.stringify({ vrm, dealer_id: dealerId, force_fresh: forceFresh }),
         }
       );
 

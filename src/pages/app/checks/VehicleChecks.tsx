@@ -1,34 +1,44 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Search, Loader2, AlertTriangle, CheckCircle2, Clock, Info, Lock } from "lucide-react";
+import { Search, Loader2, AlertTriangle, CheckCircle2, Clock, XCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useVehicleChecks, useRunVehicleCheck } from "@/hooks/useVehicleChecks";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { Badge } from "@/components/ui/badge";
 
 export default function VehicleChecks() {
+  const navigate = useNavigate();
   const [vrm, setVrm] = useState("");
   const [searchHistory, setSearchHistory] = useState("");
   const { data: checks, isLoading: historyLoading } = useVehicleChecks(searchHistory);
   const runCheck = useRunVehicleCheck();
-  const [result, setResult] = useState<any>(null);
   const [activeTab, setActiveTab] = useState("run");
 
-  const handleRunCheck = async () => {
+  const handleRunCheck = async (forceFresh = false) => {
     const cleanVrm = vrm.replace(/\s/g, "").toUpperCase();
     if (!cleanVrm || cleanVrm.length < 2) {
       toast.error("Enter a valid VRM");
       return;
     }
-    setResult(null);
     try {
-      const data = await runCheck.mutateAsync(cleanVrm);
-      setResult(data);
-      toast.success("Vehicle check complete");
+      const data = await runCheck.mutateAsync({ vrm: cleanVrm, forceFresh });
+      toast.success(data.cached ? "Loaded from cache" : "Vehicle check complete");
+      if (data.check?.id) navigate(`/app/checks/${data.check.id}`);
     } catch (err: any) {
       toast.error(err.message || "Check failed");
+    }
+  };
+
+  const statusBadge = (status: string) => {
+    switch (status) {
+      case "success": return <Badge variant="default" className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">Success</Badge>;
+      case "partial": return <Badge variant="default" className="bg-amber-500/20 text-amber-400 border-amber-500/30">Partial</Badge>;
+      case "failed": return <Badge variant="destructive">Failed</Badge>;
+      default: return <Badge variant="secondary">{status}</Badge>;
     }
   };
 
@@ -36,7 +46,7 @@ export default function VehicleChecks() {
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
       <div className="mb-6">
         <h1 className="text-2xl font-bold">Vehicle Checks</h1>
-        <p className="text-sm text-muted-foreground">DVLA, DVSA MOT, and vehicle data lookups</p>
+        <p className="text-sm text-muted-foreground">DVLA, DVSA MOT history &amp; Global Vehicle Data lookups</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -47,7 +57,6 @@ export default function VehicleChecks() {
 
         <TabsContent value="run">
           <div className="max-w-2xl space-y-6">
-            {/* VRM Input */}
             <div className="p-6 rounded-xl border border-border/50 bg-card/50">
               <h3 className="text-sm font-semibold mb-3">Enter Registration</h3>
               <div className="flex gap-3">
@@ -58,7 +67,7 @@ export default function VehicleChecks() {
                   className="font-mono text-lg max-w-xs"
                   onKeyDown={(e) => e.key === "Enter" && handleRunCheck()}
                 />
-                <Button onClick={handleRunCheck} disabled={runCheck.isPending}>
+                <Button onClick={() => handleRunCheck()} disabled={runCheck.isPending}>
                   {runCheck.isPending ? (
                     <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Checking...</>
                   ) : (
@@ -66,101 +75,8 @@ export default function VehicleChecks() {
                   )}
                 </Button>
               </div>
+              <p className="text-xs text-muted-foreground mt-2">Results are cached for 6 hours per dealer. Use history to view past checks.</p>
             </div>
-
-            {/* Results */}
-            {result && (
-              <div className="space-y-4">
-                {/* DVLA */}
-                <div className="p-5 rounded-xl border border-border/50 bg-card/50">
-                  <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-success" /> DVLA Vehicle Details
-                  </h3>
-                  {result.dvla ? (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                      {Object.entries(result.dvla as Record<string, any>).map(([key, value]) => (
-                        <div key={key}>
-                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{key.replace(/([A-Z])/g, " $1").trim()}</p>
-                          <p className="text-sm font-medium">{String(value ?? "—")}</p>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground flex items-center gap-2">
-                      <AlertTriangle className="h-4 w-4 text-warning" /> No DVLA data available
-                    </p>
-                  )}
-                </div>
-
-                {/* DVSA MOT */}
-                <div className="p-5 rounded-xl border border-border/50 bg-card/50">
-                  <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-success" /> MOT History (DVSA)
-                  </h3>
-                  {result.dvsa?.length ? (
-                    <div className="space-y-3">
-                      {(result.dvsa as any[]).slice(0, 5).map((test: any, i: number) => (
-                        <div key={i} className="p-3 rounded-lg bg-muted/30 space-y-1">
-                          <div className="flex items-center justify-between">
-                            <span className={`text-xs px-2 py-0.5 rounded-full ${test.testResult === "PASSED" ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"}`}>
-                              {test.testResult}
-                            </span>
-                            <span className="text-xs text-muted-foreground">{test.completedDate}</span>
-                          </div>
-                          {test.odometerValue && (
-                            <p className="text-xs text-muted-foreground">Mileage: {Number(test.odometerValue).toLocaleString()}</p>
-                          )}
-                          {test.rfrAndComments?.length > 0 && (
-                            <div className="space-y-1 mt-1">
-                              {test.rfrAndComments.map((c: any, j: number) => (
-                                <p key={j} className="text-xs text-muted-foreground flex items-start gap-1">
-                                  <Info className="h-3 w-3 mt-0.5 shrink-0" /> {c.text}
-                                </p>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">No MOT history available</p>
-                  )}
-                </div>
-
-                {/* GVD */}
-                <div className="p-5 rounded-xl border border-border/50 bg-card/50">
-                  <h3 className="text-sm font-semibold mb-3">Vehicle Data (GVD)</h3>
-                  {result.gvd ? (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                      {Object.entries(result.gvd as Record<string, any>).map(([key, value]) => (
-                        <div key={key}>
-                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{key.replace(/([A-Z])/g, " $1").trim()}</p>
-                          <p className="text-sm font-medium">{String(value ?? "—")}</p>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">No GVD data available</p>
-                  )}
-                </div>
-
-                {/* Coming Soon */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="p-5 rounded-xl border border-border/50 bg-card/30 opacity-50">
-                    <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
-                      <Lock className="h-4 w-4" /> HPI Check
-                    </h3>
-                    <p className="text-xs text-muted-foreground">Coming Soon</p>
-                  </div>
-                  <div className="p-5 rounded-xl border border-border/50 bg-card/30 opacity-50">
-                    <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
-                      <Lock className="h-4 w-4" /> Valuation
-                    </h3>
-                    <p className="text-xs text-muted-foreground">Coming Soon</p>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </TabsContent>
 
@@ -185,33 +101,46 @@ export default function VehicleChecks() {
                   <thead>
                     <tr className="border-b border-border/50">
                       <th className="text-left text-xs font-medium text-muted-foreground p-3">VRM</th>
+                      <th className="text-left text-xs font-medium text-muted-foreground p-3">Make / Model</th>
                       <th className="text-left text-xs font-medium text-muted-foreground p-3">Date</th>
+                      <th className="text-left text-xs font-medium text-muted-foreground p-3">Status</th>
                       <th className="text-left text-xs font-medium text-muted-foreground p-3 hidden md:table-cell">DVLA</th>
                       <th className="text-left text-xs font-medium text-muted-foreground p-3 hidden md:table-cell">MOT</th>
                       <th className="text-left text-xs font-medium text-muted-foreground p-3 hidden md:table-cell">GVD</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {checks.map((check) => (
-                      <tr key={check.id} className="border-b border-border/30 hover:bg-muted/30 transition-colors">
-                        <td className="p-3 font-mono text-sm font-medium text-primary">{check.vrm}</td>
-                        <td className="p-3 text-sm text-muted-foreground">
-                          <span className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {format(new Date(check.created_at), "d MMM yyyy HH:mm")}
-                          </span>
-                        </td>
-                        <td className="p-3 hidden md:table-cell">
-                          {check.dvla_data ? <CheckCircle2 className="h-4 w-4 text-success" /> : <span className="text-xs text-muted-foreground">—</span>}
-                        </td>
-                        <td className="p-3 hidden md:table-cell">
-                          {check.dvsa_data ? <CheckCircle2 className="h-4 w-4 text-success" /> : <span className="text-xs text-muted-foreground">—</span>}
-                        </td>
-                        <td className="p-3 hidden md:table-cell">
-                          {check.gvd_data ? <CheckCircle2 className="h-4 w-4 text-success" /> : <span className="text-xs text-muted-foreground">—</span>}
-                        </td>
-                      </tr>
-                    ))}
+                    {checks.map((check) => {
+                      const summary = check.summary_data as any;
+                      return (
+                        <tr
+                          key={check.id}
+                          className="border-b border-border/30 hover:bg-muted/30 transition-colors cursor-pointer"
+                          onClick={() => navigate(`/app/checks/${check.id}`)}
+                        >
+                          <td className="p-3 font-mono text-sm font-medium text-primary">{check.vrm}</td>
+                          <td className="p-3 text-sm text-muted-foreground">
+                            {summary?.make && summary?.model ? `${summary.make} ${summary.model}` : summary?.make || "—"}
+                          </td>
+                          <td className="p-3 text-sm text-muted-foreground">
+                            <span className="flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              {format(new Date(check.created_at), "d MMM yyyy HH:mm")}
+                            </span>
+                          </td>
+                          <td className="p-3">{statusBadge(check.status)}</td>
+                          <td className="p-3 hidden md:table-cell">
+                            {check.dvla_status === "success" ? <CheckCircle2 className="h-4 w-4 text-emerald-400" /> : check.dvla_status === "failed" ? <XCircle className="h-4 w-4 text-destructive" /> : <span className="text-xs text-muted-foreground">—</span>}
+                          </td>
+                          <td className="p-3 hidden md:table-cell">
+                            {check.dvsa_status === "success" ? <CheckCircle2 className="h-4 w-4 text-emerald-400" /> : check.dvsa_status === "failed" ? <XCircle className="h-4 w-4 text-destructive" /> : <span className="text-xs text-muted-foreground">—</span>}
+                          </td>
+                          <td className="p-3 hidden md:table-cell">
+                            {check.gvd_status === "success" ? <CheckCircle2 className="h-4 w-4 text-emerald-400" /> : check.gvd_status === "failed" ? <XCircle className="h-4 w-4 text-destructive" /> : <span className="text-xs text-muted-foreground">—</span>}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

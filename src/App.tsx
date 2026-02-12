@@ -27,6 +27,7 @@ import VehicleList from "./pages/app/vehicles/VehicleList";
 import VehicleCreate from "./pages/app/vehicles/VehicleCreate";
 import VehicleProfile from "./pages/app/vehicles/VehicleProfile";
 import VehicleChecks from "./pages/app/checks/VehicleChecks";
+import VehicleCheckDetail from "./pages/app/checks/VehicleCheckDetail";
 import LeadList from "./pages/app/leads/LeadList";
 import LeadCreate from "./pages/app/leads/LeadCreate";
 import LeadProfile from "./pages/app/leads/LeadProfile";
@@ -87,6 +88,7 @@ const App = () => (
 
               {/* Vehicle Checks */}
               <Route path="checks" element={<VehicleChecks />} />
+              <Route path="checks/:id" element={<VehicleCheckDetail />} />
 
               {/* Leads */}
               <Route path="leads" element={<LeadList />} />
