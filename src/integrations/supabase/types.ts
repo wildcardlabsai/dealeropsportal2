@@ -1137,6 +1137,247 @@ export type Database = {
           },
         ]
       }
+      handover_items: {
+        Row: {
+          completed: boolean
+          completed_at: string | null
+          completed_by_user_id: string | null
+          dealer_id: string
+          handover_id: string
+          id: string
+          item_label: string
+          notes: string | null
+          section: string
+        }
+        Insert: {
+          completed?: boolean
+          completed_at?: string | null
+          completed_by_user_id?: string | null
+          dealer_id: string
+          handover_id: string
+          id?: string
+          item_label: string
+          notes?: string | null
+          section?: string
+        }
+        Update: {
+          completed?: boolean
+          completed_at?: string | null
+          completed_by_user_id?: string | null
+          dealer_id?: string
+          handover_id?: string
+          id?: string
+          item_label?: string
+          notes?: string | null
+          section?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "handover_items_dealer_id_fkey"
+            columns: ["dealer_id"]
+            isOneToOne: false
+            referencedRelation: "dealers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "handover_items_handover_id_fkey"
+            columns: ["handover_id"]
+            isOneToOne: false
+            referencedRelation: "handovers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      handover_photos: {
+        Row: {
+          caption: string | null
+          created_at: string
+          dealer_id: string
+          file_url: string
+          handover_id: string
+          id: string
+          photo_type: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          dealer_id: string
+          file_url: string
+          handover_id: string
+          id?: string
+          photo_type?: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          dealer_id?: string
+          file_url?: string
+          handover_id?: string
+          id?: string
+          photo_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "handover_photos_dealer_id_fkey"
+            columns: ["dealer_id"]
+            isOneToOne: false
+            referencedRelation: "dealers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "handover_photos_handover_id_fkey"
+            columns: ["handover_id"]
+            isOneToOne: false
+            referencedRelation: "handovers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      handover_templates: {
+        Row: {
+          created_at: string
+          dealer_id: string | null
+          id: string
+          is_default: boolean
+          items_json: Json
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          dealer_id?: string | null
+          id?: string
+          is_default?: boolean
+          items_json?: Json
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          dealer_id?: string | null
+          id?: string
+          is_default?: boolean
+          items_json?: Json
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "handover_templates_dealer_id_fkey"
+            columns: ["dealer_id"]
+            isOneToOne: false
+            referencedRelation: "dealers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      handovers: {
+        Row: {
+          created_at: string
+          customer_id: string
+          dealer_id: string
+          delivered_at: string | null
+          delivery_address: string | null
+          delivery_type: string
+          fuel_level: string | null
+          handover_number: string | null
+          handover_pdf_url: string | null
+          id: string
+          invoice_id: string | null
+          keys_count: number
+          mileage_at_handover: number | null
+          notes: string | null
+          scheduled_delivery_at: string | null
+          signature_image_url: string | null
+          signature_mode: string | null
+          signature_name: string | null
+          signed_at: string | null
+          staff_user_id: string | null
+          status: string
+          updated_at: string
+          vehicle_id: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id: string
+          dealer_id: string
+          delivered_at?: string | null
+          delivery_address?: string | null
+          delivery_type?: string
+          fuel_level?: string | null
+          handover_number?: string | null
+          handover_pdf_url?: string | null
+          id?: string
+          invoice_id?: string | null
+          keys_count?: number
+          mileage_at_handover?: number | null
+          notes?: string | null
+          scheduled_delivery_at?: string | null
+          signature_image_url?: string | null
+          signature_mode?: string | null
+          signature_name?: string | null
+          signed_at?: string | null
+          staff_user_id?: string | null
+          status?: string
+          updated_at?: string
+          vehicle_id: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string
+          dealer_id?: string
+          delivered_at?: string | null
+          delivery_address?: string | null
+          delivery_type?: string
+          fuel_level?: string | null
+          handover_number?: string | null
+          handover_pdf_url?: string | null
+          id?: string
+          invoice_id?: string | null
+          keys_count?: number
+          mileage_at_handover?: number | null
+          notes?: string | null
+          scheduled_delivery_at?: string | null
+          signature_image_url?: string | null
+          signature_mode?: string | null
+          signature_name?: string | null
+          signed_at?: string | null
+          staff_user_id?: string | null
+          status?: string
+          updated_at?: string
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "handovers_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "handovers_dealer_id_fkey"
+            columns: ["dealer_id"]
+            isOneToOne: false
+            referencedRelation: "dealers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "handovers_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "handovers_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoice_items: {
         Row: {
           created_at: string
@@ -1351,57 +1592,195 @@ export type Database = {
           },
         ]
       }
+      lead_activities: {
+        Row: {
+          created_at: string
+          created_by_user_id: string | null
+          dealer_id: string
+          id: string
+          lead_id: string
+          message: string | null
+          new_stage: string | null
+          occurred_at: string
+          old_stage: string | null
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          created_by_user_id?: string | null
+          dealer_id: string
+          id?: string
+          lead_id: string
+          message?: string | null
+          new_stage?: string | null
+          occurred_at?: string
+          old_stage?: string | null
+          type?: string
+        }
+        Update: {
+          created_at?: string
+          created_by_user_id?: string | null
+          dealer_id?: string
+          id?: string
+          lead_id?: string
+          message?: string | null
+          new_stage?: string | null
+          occurred_at?: string
+          old_stage?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_activities_dealer_id_fkey"
+            columns: ["dealer_id"]
+            isOneToOne: false
+            referencedRelation: "dealers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_activities_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lead_appointments: {
+        Row: {
+          appointment_type: string
+          created_at: string
+          dealer_id: string
+          ends_at: string | null
+          id: string
+          lead_id: string
+          location: string | null
+          notes: string | null
+          starts_at: string
+          status: string
+        }
+        Insert: {
+          appointment_type?: string
+          created_at?: string
+          dealer_id: string
+          ends_at?: string | null
+          id?: string
+          lead_id: string
+          location?: string | null
+          notes?: string | null
+          starts_at: string
+          status?: string
+        }
+        Update: {
+          appointment_type?: string
+          created_at?: string
+          dealer_id?: string
+          ends_at?: string | null
+          id?: string
+          lead_id?: string
+          location?: string | null
+          notes?: string | null
+          starts_at?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_appointments_dealer_id_fkey"
+            columns: ["dealer_id"]
+            isOneToOne: false
+            referencedRelation: "dealers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_appointments_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leads: {
         Row: {
           assigned_to: string | null
+          budget_max: number | null
+          budget_min: number | null
           created_at: string
+          created_by_user_id: string | null
           customer_id: string | null
           dealer_id: string
           email: string | null
           estimated_value: number | null
+          finance_required: boolean
           first_name: string
           id: string
+          last_contacted_at: string | null
           last_name: string
+          lead_number: string | null
+          lost_reason: string | null
+          next_action_at: string | null
           notes: string | null
           phone: string | null
           source: Database["public"]["Enums"]["lead_source"]
+          stage: string
           status: Database["public"]["Enums"]["lead_status"]
           updated_at: string
           vehicle_id: string | null
+          vehicle_interest_text: string | null
         }
         Insert: {
           assigned_to?: string | null
+          budget_max?: number | null
+          budget_min?: number | null
           created_at?: string
+          created_by_user_id?: string | null
           customer_id?: string | null
           dealer_id: string
           email?: string | null
           estimated_value?: number | null
+          finance_required?: boolean
           first_name: string
           id?: string
+          last_contacted_at?: string | null
           last_name: string
+          lead_number?: string | null
+          lost_reason?: string | null
+          next_action_at?: string | null
           notes?: string | null
           phone?: string | null
           source?: Database["public"]["Enums"]["lead_source"]
+          stage?: string
           status?: Database["public"]["Enums"]["lead_status"]
           updated_at?: string
           vehicle_id?: string | null
+          vehicle_interest_text?: string | null
         }
         Update: {
           assigned_to?: string | null
+          budget_max?: number | null
+          budget_min?: number | null
           created_at?: string
+          created_by_user_id?: string | null
           customer_id?: string | null
           dealer_id?: string
           email?: string | null
           estimated_value?: number | null
+          finance_required?: boolean
           first_name?: string
           id?: string
+          last_contacted_at?: string | null
           last_name?: string
+          lead_number?: string | null
+          lost_reason?: string | null
+          next_action_at?: string | null
           notes?: string | null
           phone?: string | null
           source?: Database["public"]["Enums"]["lead_source"]
+          stage?: string
           status?: Database["public"]["Enums"]["lead_status"]
           updated_at?: string
           vehicle_id?: string | null
+          vehicle_interest_text?: string | null
         }
         Relationships: [
           {
@@ -2414,6 +2793,11 @@ export type Database = {
         | "negotiating"
         | "won"
         | "lost"
+        | "appointment_set"
+        | "test_drive"
+        | "finance"
+        | "reserved"
+        | "sold"
       payment_method_type: "bacs" | "card" | "cash" | "finance" | "other"
       sale_type: "cash" | "finance" | "part_finance"
       task_priority: "low" | "medium" | "high" | "urgent"
@@ -2624,6 +3008,11 @@ export const Constants = {
         "negotiating",
         "won",
         "lost",
+        "appointment_set",
+        "test_drive",
+        "finance",
+        "reserved",
+        "sold",
       ],
       payment_method_type: ["bacs", "card", "cash", "finance", "other"],
       sale_type: ["cash", "finance", "part_finance"],

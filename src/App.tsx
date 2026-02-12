@@ -55,6 +55,9 @@ import TaskCreate from "./pages/app/tasks/TaskCreate";
 import AuditLog from "./pages/app/audit/AuditLog";
 import SettingsPage from "./pages/app/settings/SettingsPage";
 import ReportsPage from "./pages/app/reports/ReportsPage";
+import HandoverList from "./pages/app/handovers/HandoverList";
+import HandoverCreate from "./pages/app/handovers/HandoverCreate";
+import HandoverDetail from "./pages/app/handovers/HandoverDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -118,6 +121,11 @@ const App = () => (
               <Route path="aftersales" element={<AftersalesModule />} />
               <Route path="aftersales/new" element={<AftersalesCaseCreate />} />
               <Route path="aftersales/:id" element={<AftersalesCaseDetail />} />
+
+              {/* Handovers */}
+              <Route path="handovers" element={<HandoverList />} />
+              <Route path="handovers/new" element={<HandoverCreate />} />
+              <Route path="handovers/:id" element={<HandoverDetail />} />
 
               {/* Courtesy Cars */}
               <Route path="courtesy-cars" element={<CourtesyCarList />} />

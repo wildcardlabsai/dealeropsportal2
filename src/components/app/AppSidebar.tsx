@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, Users, Car, FileText, Shield, Wrench, CarFront,
   Target, ClipboardCheck, Star, FolderOpen, BarChart3, MessageSquare,
-  CreditCard, Settings, ScrollText, Search, LogOut, Building2, UsersRound, TrendingUp, Gauge
+  CreditCard, Settings, ScrollText, Search, LogOut, Building2, UsersRound, TrendingUp, Gauge, PackageCheck
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/contexts/AuthContext";
@@ -27,6 +27,7 @@ const mainNav = [
 const opsNav = [
   { title: "Warranties", url: "/app/warranties", icon: Shield },
   { title: "Aftersales", url: "/app/aftersales", icon: Wrench },
+  { title: "Handovers", url: "/app/handovers", icon: PackageCheck },
   { title: "Courtesy Cars", url: "/app/courtesy-cars", icon: CarFront },
   { title: "Tasks", url: "/app/tasks", icon: ClipboardCheck },
   { title: "Review Booster", url: "/app/reviews", icon: Star },
