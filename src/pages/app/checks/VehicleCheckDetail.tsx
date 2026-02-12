@@ -149,24 +149,73 @@ export default function VehicleCheckDetail() {
     
     const statusColor = hasAnomalies ? "#ef4444" : "#22c55e";
     const statusText = hasAnomalies ? "⚠️ Mileage Anomaly Detected" : "✅ Mileage Consistent";
-    
+
+    // Build SVG chart
+    const chartW = 600, chartH = 200, padL = 55, padR = 20, padT = 20, padB = 40;
+    const plotW = chartW - padL - padR, plotH = chartH - padT - padB;
+    const mileages = mileageHistory.map(e => e.mileage);
+    const minM = Math.min(...mileages), maxM = Math.max(...mileages);
+    const range = maxM - minM || 1;
+
+    const points = mileageHistory.map((e, i) => ({
+      x: padL + (i / (mileageHistory.length - 1)) * plotW,
+      y: padT + plotH - ((e.mileage - minM) / range) * plotH,
+      anomaly: e.anomaly,
+      mileage: e.mileage,
+      date: e.date,
+    }));
+
+    const polyline = points.map(p => `${p.x},${p.y}`).join(" ");
+
+    // Y-axis ticks (5 ticks)
+    const yTicks = Array.from({ length: 5 }, (_, i) => {
+      const val = minM + (range * i) / 4;
+      const y = padT + plotH - (i / 4) * plotH;
+      return `<line x1="${padL}" y1="${y}" x2="${padL + plotW}" y2="${y}" stroke="#e2e8f0" stroke-width="1"/>
+        <text x="${padL - 8}" y="${y + 4}" text-anchor="end" font-size="10" fill="#94a3b8">${(val / 1000).toFixed(0)}k</text>`;
+    }).join("");
+
+    // X-axis labels
+    const xLabels = points.map((p, i) => {
+      const label = mileageHistory[i].date?.split?.("-").slice(0, 2).join("-") || mileageHistory[i].date;
+      return `<text x="${p.x}" y="${chartH - 8}" text-anchor="middle" font-size="10" fill="#94a3b8">${label}</text>`;
+    }).join("");
+
+    // Dots
+    const dots = points.map(p => 
+      `<circle cx="${p.x}" cy="${p.y}" r="${p.anomaly ? 6 : 4}" fill="${p.anomaly ? "#ef4444" : "#3b82f6"}" stroke="#fff" stroke-width="2"/>`
+    ).join("");
+
+    // Area fill
+    const areaPath = `M${points[0].x},${padT + plotH} ${points.map(p => `L${p.x},${p.y}`).join(" ")} L${points[points.length - 1].x},${padT + plotH} Z`;
+
+    const svgChart = `<svg width="100%" viewBox="0 0 ${chartW} ${chartH}" style="max-width:${chartW}px;margin:12px auto;display:block;">
+      ${yTicks}
+      <path d="${areaPath}" fill="#3b82f6" opacity="0.08"/>
+      <polyline points="${polyline}" fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+      ${dots}
+      ${xLabels}
+    </svg>`;
+
+    // Compact summary table
     let tableRows = mileageHistory.map(e => {
       const bg = e.anomaly ? "background:#fef2f2;" : "";
       const diffText = e.diff !== null ? (e.diff >= 0 ? `+${e.diff.toLocaleString()}` : `${e.diff.toLocaleString()}`) : "—";
-      const diffColor = e.anomaly ? "color:#ef4444;font-weight:600;" : "color:#666;";
+      const diffColor = e.anomaly ? "color:#ef4444;font-weight:600;" : "color:#64748b;";
       return `<tr style="${bg}">
-        <td style="padding:6px 12px;border-bottom:1px solid #e5e7eb;font-size:13px;">${e.date}</td>
-        <td style="padding:6px 12px;border-bottom:1px solid #e5e7eb;font-size:13px;font-weight:500;">${e.mileage.toLocaleString()} mi</td>
-        <td style="padding:6px 12px;border-bottom:1px solid #e5e7eb;font-size:13px;${diffColor}">${diffText}${e.anomaly ? " ⚠️" : ""}</td>
+        <td style="padding:4px 10px;border-bottom:1px solid #f1f5f9;font-size:12px;color:#64748b;">${e.date}</td>
+        <td style="padding:4px 10px;border-bottom:1px solid #f1f5f9;font-size:12px;font-weight:500;">${e.mileage.toLocaleString()} mi</td>
+        <td style="padding:4px 10px;border-bottom:1px solid #f1f5f9;font-size:12px;${diffColor}">${diffText}${e.anomaly ? " ⚠️" : ""}</td>
       </tr>`;
     }).join("");
 
-    return `<div style="margin-bottom:8px;padding:12px 16px;background:${hasAnomalies ? "#fef2f2" : "#f0fdf4"};border-left:4px solid ${statusColor};border-radius:0 8px 8px 0;font-weight:600;font-size:14px;color:${statusColor};">${statusText}</div>
-      <table style="width:100%;border-collapse:collapse;margin-top:8px;">
-        <thead><tr style="background:#f8f9fa;">
-          <th style="padding:6px 12px;text-align:left;font-size:11px;text-transform:uppercase;color:#666;border-bottom:2px solid #e5e7eb;">Date</th>
-          <th style="padding:6px 12px;text-align:left;font-size:11px;text-transform:uppercase;color:#666;border-bottom:2px solid #e5e7eb;">Mileage</th>
-          <th style="padding:6px 12px;text-align:left;font-size:11px;text-transform:uppercase;color:#666;border-bottom:2px solid #e5e7eb;">Change</th>
+    return `<div style="margin-bottom:12px;padding:12px 16px;background:${hasAnomalies ? "#fef2f2" : "#f0fdf4"};border-left:4px solid ${statusColor};border-radius:0 8px 8px 0;font-weight:600;font-size:14px;color:${statusColor};">${statusText}</div>
+      ${svgChart}
+      <table style="width:100%;border-collapse:collapse;margin-top:4px;">
+        <thead><tr style="background:#f8fafc;">
+          <th style="padding:4px 10px;text-align:left;font-size:10px;text-transform:uppercase;color:#94a3b8;border-bottom:2px solid #e2e8f0;">Date</th>
+          <th style="padding:4px 10px;text-align:left;font-size:10px;text-transform:uppercase;color:#94a3b8;border-bottom:2px solid #e2e8f0;">Mileage</th>
+          <th style="padding:4px 10px;text-align:left;font-size:10px;text-transform:uppercase;color:#94a3b8;border-bottom:2px solid #e2e8f0;">Change</th>
         </tr></thead>
         <tbody>${tableRows}</tbody>
       </table>`;
