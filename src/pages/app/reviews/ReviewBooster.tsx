@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Star, Send, Clock, CheckCircle2, BarChart3, Plus, ExternalLink } from "lucide-react";
+import { Star, Send, Clock, CheckCircle2, BarChart3, Plus, ExternalLink, Settings2, Trash2, Link2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { useReviewRequests, useCreateReviewRequest, useUpdateReviewRequest } from "@/hooks/useReviewRequests";
+import { useReviewPlatformLinks, useUpsertPlatformLink, useDeletePlatformLink, useSendReviewRequest } from "@/hooks/useReviewPlatformLinks";
 import { useCustomers, useUserDealerId } from "@/hooks/useCustomers";
 import { useVehicles } from "@/hooks/useVehicles";
 import { useAuth } from "@/contexts/AuthContext";
@@ -34,13 +35,18 @@ const statusStyles: Record<string, string> = {
 export default function ReviewBooster() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [open, setOpen] = useState(false);
+  const [linksOpen, setLinksOpen] = useState(false);
   const { data: requests, isLoading } = useReviewRequests(statusFilter);
   const { data: customers } = useCustomers();
   const { data: vehicles } = useVehicles();
   const { data: dealerId } = useUserDealerId();
+  const { data: platformLinks } = useReviewPlatformLinks();
   const { user } = useAuth();
   const createRequest = useCreateReviewRequest();
   const updateRequest = useUpdateReviewRequest();
+  const upsertLink = useUpsertPlatformLink();
+  const deleteLink = useDeletePlatformLink();
+  const sendReview = useSendReviewRequest();
 
   const [form, setForm] = useState({
     customer_id: "",
@@ -51,6 +57,8 @@ export default function ReviewBooster() {
     platform: "google",
     notes: "",
   });
+
+  const [linkForm, setLinkForm] = useState({ platform: "google", review_url: "" });
 
   const totalSent = requests?.length ?? 0;
   const reviewed = requests?.filter((r: any) => r.status === "reviewed").length ?? 0;
@@ -63,6 +71,8 @@ export default function ReviewBooster() {
   const avgRatingDisplay = avgRating && avgRating.count > 0
     ? (avgRating.sum / avgRating.count).toFixed(1)
     : "—";
+
+  const configuredPlatforms = new Set(platformLinks?.map((l: any) => l.platform) || []);
 
   const handleCreate = async () => {
     if (!dealerId || !user) return;
@@ -97,9 +107,13 @@ export default function ReviewBooster() {
     }
   };
 
-  const handleMarkSent = async (id: string) => {
-    await updateRequest.mutateAsync({ id, status: "sent", sent_at: new Date().toISOString() });
-    toast.success("Marked as sent");
+  const handleSendEmail = async (id: string) => {
+    try {
+      await sendReview.mutateAsync(id);
+      toast.success("Review request email sent!");
+    } catch (err: any) {
+      toast.error(err.message);
+    }
   };
 
   const handleMarkReviewed = async (id: string, rating: number) => {
@@ -117,6 +131,17 @@ export default function ReviewBooster() {
         customer_email: customer.email || p.customer_email,
         customer_phone: customer.phone || p.customer_phone,
       }));
+    }
+  };
+
+  const handleSaveLink = async () => {
+    if (!linkForm.review_url) { toast.error("URL is required"); return; }
+    try {
+      await upsertLink.mutateAsync(linkForm);
+      toast.success(`${linkForm.platform} link saved`);
+      setLinkForm({ platform: "google", review_url: "" });
+    } catch (err: any) {
+      toast.error(err.message);
     }
   };
 
@@ -142,6 +167,69 @@ export default function ReviewBooster() {
             <p className="text-xs text-muted-foreground">{s.label}</p>
           </div>
         ))}
+      </div>
+
+      {/* Platform Links Config */}
+      <div className="p-4 rounded-xl border border-border/50 bg-card/50 mb-6">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Link2 className="h-4 w-4 text-primary" />
+            <h3 className="text-sm font-semibold">Review Platform Links</h3>
+          </div>
+          <Dialog open={linksOpen} onOpenChange={setLinksOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm"><Settings2 className="h-3 w-3 mr-1" /> Manage Links</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader><DialogTitle>Review Platform Links</DialogTitle></DialogHeader>
+              <p className="text-xs text-muted-foreground mb-3">Add the direct URL where customers can leave a review for each platform.</p>
+              <div className="space-y-3">
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <Label className="text-xs">Platform</Label>
+                    <Select value={linkForm.platform} onValueChange={v => setLinkForm(p => ({ ...p, platform: v }))}>
+                      <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {PLATFORMS.map(p => (
+                          <SelectItem key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="col-span-2">
+                    <Label className="text-xs">Review URL</Label>
+                    <div className="flex gap-2 mt-1">
+                      <Input value={linkForm.review_url} onChange={e => setLinkForm(p => ({ ...p, review_url: e.target.value }))} placeholder="https://g.page/r/..." />
+                      <Button size="sm" onClick={handleSaveLink} disabled={upsertLink.isPending}>Save</Button>
+                    </div>
+                  </div>
+                </div>
+                {platformLinks && platformLinks.length > 0 && (
+                  <div className="space-y-2 border-t border-border/50 pt-3">
+                    {platformLinks.map((link: any) => (
+                      <div key={link.id} className="flex items-center justify-between p-2 rounded-lg bg-muted/20 border border-border/30">
+                        <div className="flex-1 min-w-0">
+                          <span className="text-xs font-medium capitalize">{link.platform}</span>
+                          <p className="text-[10px] text-muted-foreground truncate">{link.review_url}</p>
+                        </div>
+                        <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={() => deleteLink.mutate(link.id)}>
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {PLATFORMS.map(p => (
+            <span key={p} className={`text-[10px] px-2 py-1 rounded-full border ${configuredPlatforms.has(p) ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/20" : "text-muted-foreground bg-muted/30 border-border/50"}`}>
+              {p.charAt(0).toUpperCase() + p.slice(1)} {configuredPlatforms.has(p) ? "✓" : "Not set"}
+            </span>
+          ))}
+        </div>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between mb-4">
@@ -197,10 +285,16 @@ export default function ReviewBooster() {
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {PLATFORMS.map(p => (
-                      <SelectItem key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</SelectItem>
+                      <SelectItem key={p} value={p}>
+                        {p.charAt(0).toUpperCase() + p.slice(1)}
+                        {!configuredPlatforms.has(p) && " (no link set)"}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+                {!configuredPlatforms.has(form.platform) && (
+                  <p className="text-[10px] text-amber-400 mt-1">⚠ No review link configured for this platform. Add it via "Manage Links" above.</p>
+                )}
               </div>
               <div><Label>Notes</Label><Textarea value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} rows={2} /></div>
               <Button onClick={handleCreate} disabled={createRequest.isPending} className="w-full">Create Request</Button>
@@ -246,8 +340,13 @@ export default function ReviewBooster() {
                   </div>
                   <div className="flex items-center gap-2">
                     {req.status === "pending" && (
-                      <Button size="sm" variant="outline" onClick={() => handleMarkSent(req.id)}>
-                        <Send className="h-3 w-3 mr-1" /> Mark Sent
+                      <Button
+                        size="sm"
+                        onClick={() => handleSendEmail(req.id)}
+                        disabled={sendReview.isPending}
+                      >
+                        {sendReview.isPending ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Send className="h-3 w-3 mr-1" />}
+                        Send Email
                       </Button>
                     )}
                     {(req.status === "sent" || req.status === "clicked") && (
@@ -259,6 +358,13 @@ export default function ReviewBooster() {
                           ))}
                         </SelectContent>
                       </Select>
+                    )}
+                    {req.review_link_url && (
+                      <Button size="sm" variant="ghost" asChild>
+                        <a href={req.review_link_url} target="_blank" rel="noopener noreferrer">
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      </Button>
                     )}
                   </div>
                 </div>

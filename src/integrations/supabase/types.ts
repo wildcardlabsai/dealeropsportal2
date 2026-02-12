@@ -2893,6 +2893,41 @@ export type Database = {
           },
         ]
       }
+      review_platform_links: {
+        Row: {
+          created_at: string
+          dealer_id: string
+          id: string
+          platform: string
+          review_url: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          dealer_id: string
+          id?: string
+          platform: string
+          review_url: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          dealer_id?: string
+          id?: string
+          platform?: string
+          review_url?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_platform_links_dealer_id_fkey"
+            columns: ["dealer_id"]
+            isOneToOne: false
+            referencedRelation: "dealers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       review_requests: {
         Row: {
           clicked_at: string | null
@@ -2905,6 +2940,7 @@ export type Database = {
           id: string
           notes: string | null
           platform: string
+          review_link_url: string | null
           review_rating: number | null
           reviewed_at: string | null
           sent_at: string | null
@@ -2924,6 +2960,7 @@ export type Database = {
           id?: string
           notes?: string | null
           platform?: string
+          review_link_url?: string | null
           review_rating?: number | null
           reviewed_at?: string | null
           sent_at?: string | null
@@ -2943,6 +2980,7 @@ export type Database = {
           id?: string
           notes?: string | null
           platform?: string
+          review_link_url?: string | null
           review_rating?: number | null
           reviewed_at?: string | null
           sent_at?: string | null

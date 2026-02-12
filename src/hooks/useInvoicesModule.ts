@@ -38,7 +38,7 @@ export function useInvoice(id: string | undefined) {
       if (!id) return null;
       const { data, error } = await supabase
         .from("invoices")
-        .select("*, customers(first_name, last_name, email, phone, address_line1, address_line2, city, postcode), vehicles(vrm, vin, make, model, year, mileage), finance_companies(legal_name, trading_name, address_line1, address_line2, town, postcode)")
+        .select("*, customers(first_name, last_name, email, phone, address_line1, address_line2, city, postcode), vehicles(vrm, vin, make, model, year, mileage), finance_companies(legal_name, trading_name, address_line1, address_line2, town, postcode), dealers(name, trading_name, legal_name, fca_number, ico_number, vat_number, company_number, address_line1, address_line2, city, postcode, phone, email, logo_url, bank_details_text, invoice_footer_text)")
         .eq("id", id)
         .single();
       if (error) throw error;

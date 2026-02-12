@@ -122,6 +122,7 @@ export default function InvoiceDetailModule() {
     const customer = inv.customers;
     const vehicle = inv.vehicles;
     const finCo = inv.finance_companies;
+    const dealer = inv.dealers;
     const isFinance = inv.sale_type === "finance" || inv.sale_type === "part_finance";
 
     const soldTo = isFinance && finCo
@@ -134,7 +135,11 @@ export default function InvoiceDetailModule() {
     const vin = inv.vehicle_vin_override || vehicle?.vin || "";
     const mileage = inv.vehicle_mileage_override || vehicle?.mileage || "";
     const makeModel = inv.vehicle_make_model_override || (vehicle ? `${vehicle.make || ""} ${vehicle.model || ""}`.trim() : "");
-    const firstReg = inv.vehicle_first_reg_override || "";
+    const firstReg = inv.vehicle_first_reg_override || vehicle?.year || "";
+
+    const dealerName = dealer?.trading_name || dealer?.legal_name || dealer?.name || "";
+    const dealerAddr = [dealer?.address_line1, dealer?.city, dealer?.postcode].filter(Boolean).join(", ");
+    const dealerContact = [dealer?.phone, dealer?.email].filter(Boolean).join(" · ");
 
     const itemsHtml = (items || []).map((item: any) => `
       <tr>
@@ -173,6 +178,14 @@ export default function InvoiceDetailModule() {
       </div>
     `).join("");
 
+    // Regulatory footer items
+    const regItems = [
+      dealer?.company_number ? `Company Reg: ${dealer.company_number}` : "",
+      dealer?.vat_number ? `VAT: ${dealer.vat_number}` : "",
+      dealer?.fca_number ? `FCA: ${dealer.fca_number}` : "",
+      dealer?.ico_number ? `ICO: ${dealer.ico_number}` : "",
+    ].filter(Boolean).join(" &nbsp;·&nbsp; ");
+
     const html = `
       <!DOCTYPE html><html><head><title>Invoice ${inv.invoice_number}</title>
       <style>
@@ -192,15 +205,25 @@ export default function InvoiceDetailModule() {
         .totals .total{font-size:20px;font-weight:bold;color:#3b82f6;border-top:2px solid #333;padding-top:8px;margin-top:4px}
         .payments{background:#1a1a24;padding:16px;border-radius:8px;margin-bottom:24px}
         .payments h4{color:#888;font-size:11px;text-transform:uppercase;margin:0 0 8px}
+        .footer-reg{text-align:center;padding:12px 0;border-top:1px solid #333;font-size:10px;color:#666;margin-top:16px}
         @media print{body{background:#fff;color:#111;padding:20px}.container{background:#fff;border:none;box-shadow:none}
           .vehicle-block,.payments{background:#f5f5f5}th{color:#666}h1{color:#2563eb}.totals .total{color:#2563eb}}
       </style></head><body>
       <div class="container">
         <div class="header">
-          <div><h1>${inv.invoice_number}</h1><p style="color:#888;font-size:13px;margin:4px 0">Sale Date: ${inv.sale_date || "—"}</p>
-          <p style="color:#888;font-size:13px;margin:0">Status: ${inv.status?.toUpperCase()}</p></div>
-          <div style="text-align:right"><p style="font-size:11px;color:#888;text-transform:uppercase">Sales Invoice</p>
-          <p style="font-size:12px;color:#888">${saleTypeLabels[inv.sale_type] || "Cash"}</p></div>
+          <div>
+            ${dealer?.logo_url ? `<img src="${dealer.logo_url}" alt="" style="max-height:48px;margin-bottom:8px;display:block" />` : ""}
+            <h1>${inv.invoice_number}</h1>
+            <p style="color:#888;font-size:13px;margin:4px 0">Sale Date: ${inv.sale_date || "—"}</p>
+            <p style="color:#888;font-size:13px;margin:0">Status: ${inv.status?.toUpperCase()}</p>
+          </div>
+          <div style="text-align:right">
+            <p style="font-size:14px;font-weight:bold;margin:0 0 4px">${dealerName}</p>
+            <p style="font-size:11px;color:#888;margin:0">${dealerAddr}</p>
+            <p style="font-size:11px;color:#888;margin:2px 0 8px">${dealerContact}</p>
+            <p style="font-size:11px;color:#888;text-transform:uppercase">Sales Invoice</p>
+            <p style="font-size:12px;color:#888">${saleTypeLabels[inv.sale_type] || "Cash"}</p>
+          </div>
         </div>
         <div class="addresses">
           <div class="address-block"><h4>${isFinance ? "Sold To (Finance Co.)" : "Sold To"}</h4><p>${soldTo || "—"}</p></div>
@@ -208,10 +231,10 @@ export default function InvoiceDetailModule() {
         </div>
         ${(vrm || vin || makeModel) ? `<div class="vehicle-block">
           <div><div class="label">Registration</div>${vrm || "—"}</div>
-          <div><div class="label">VIN</div>${vin || "—"}</div>
-          <div><div class="label">Make/Model</div>${makeModel || "—"}</div>
+          <div><div class="label">Make / Model</div>${makeModel || "—"}</div>
           <div><div class="label">Mileage</div>${mileage || "—"}</div>
-          <div><div class="label">First Reg</div>${firstReg || "—"}</div>
+          <div><div class="label">VIN</div>${vin || "—"}</div>
+          <div><div class="label">Date of First Reg</div>${firstReg || "—"}</div>
         </div>` : ""}
         <table>
           <thead><tr><th>Description</th><th style="text-align:center">Qty</th><th style="text-align:right">Unit Price</th><th style="text-align:center">VAT</th><th style="text-align:right">Total</th></tr></thead>
@@ -230,11 +253,12 @@ export default function InvoiceDetailModule() {
           </div></div>` : ""}
         ${px && px.px_settlement && Number(px.px_settlement) > 0 ? `<div style="background:#1a1a24;padding:12px 16px;border-radius:8px;margin-bottom:24px;font-size:12px;color:#888">
           <strong>Part Exchange Info:</strong> ${px.px_vrm || ""} ${px.px_make_model || ""} — Settlement: £${Number(px.px_settlement).toFixed(2)}</div>` : ""}
-        <div style="text-align:center;padding-top:24px;border-top:1px solid #222;font-size:11px;color:#666">
-          Thank you for your business
+        ${dealer?.bank_details_text ? `<div style="background:#1a1a24;padding:12px 16px;border-radius:8px;margin-bottom:16px;font-size:11px;color:#888;white-space:pre-wrap">${dealer.bank_details_text}</div>` : ""}
+        ${dealer?.invoice_footer_text ? `<div style="text-align:center;font-size:11px;color:#888;font-style:italic;margin-bottom:8px">${dealer.invoice_footer_text}</div>` : ""}
+        <div class="footer-reg">
+          ${dealerName}${regItems ? ` &nbsp;|&nbsp; ${regItems}` : ""}
         </div>
       </div></body></html>`;
-
     const printWindow = window.open("", "_blank");
     if (printWindow) {
       printWindow.document.write(html);
