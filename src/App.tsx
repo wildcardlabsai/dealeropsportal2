@@ -26,6 +26,7 @@ import SuperAdminHealth from "./pages/app/admin/SuperAdminHealth";
 import SuperAdminAnnouncements from "./pages/app/admin/SuperAdminAnnouncements";
 import SuperAdminFeatureFlags from "./pages/app/admin/SuperAdminFeatureFlags";
 import SuperAdminAuditTrail from "./pages/app/admin/SuperAdminAuditTrail";
+import SuperAdminLeads from "./pages/app/admin/SuperAdminLeads";
 import TeamManagement from "./pages/app/team/TeamManagement";
 import KPIDashboard from "./pages/app/kpis/KPIDashboard";
 import StaffKPIProfile from "./pages/app/kpis/StaffKPIProfile";
@@ -171,6 +172,7 @@ const App = () => (
               <Route path="kpis/:id" element={<StaffKPIProfile />} />
               <Route path="my-kpis" element={<MyKPIs />} />
               <Route path="admin/health" element={<SuperAdminHealth />} />
+              <Route path="admin/leads" element={<SuperAdminLeads />} />
               <Route path="admin/dealers" element={<SuperAdminDealers />} />
               <Route path="admin/announcements" element={<SuperAdminAnnouncements />} />
               <Route path="admin/feature-flags" element={<SuperAdminFeatureFlags />} />
