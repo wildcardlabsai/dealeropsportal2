@@ -19,7 +19,11 @@ import ReviewBooster from "./pages/app/reviews/ReviewBooster";
 import SupportTickets from "./pages/app/support/SupportTickets";
 import BillingPage from "./pages/app/billing/BillingPage";
 import SuperAdminDealers from "./pages/app/admin/SuperAdminDealers";
+import SuperAdminBilling from "./pages/app/admin/SuperAdminBilling";
 import TeamManagement from "./pages/app/team/TeamManagement";
+import KPIDashboard from "./pages/app/kpis/KPIDashboard";
+import StaffKPIProfile from "./pages/app/kpis/StaffKPIProfile";
+import MyKPIs from "./pages/app/kpis/MyKPIs";
 import CustomerList from "./pages/app/customers/CustomerList";
 import CustomerCreate from "./pages/app/customers/CustomerCreate";
 import CustomerProfile from "./pages/app/customers/CustomerProfile";
@@ -135,8 +139,12 @@ const App = () => (
               <Route path="reports" element={<ReportsPage />} />
               <Route path="support" element={<SupportTickets />} />
               <Route path="billing" element={<BillingPage />} />
-              <Route path="admin/dealers" element={<SuperAdminDealers />} />
               <Route path="team" element={<TeamManagement />} />
+              <Route path="kpis" element={<KPIDashboard />} />
+              <Route path="kpis/:id" element={<StaffKPIProfile />} />
+              <Route path="my-kpis" element={<MyKPIs />} />
+              <Route path="admin/dealers" element={<SuperAdminDealers />} />
+              <Route path="admin/billing" element={<SuperAdminBilling />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />

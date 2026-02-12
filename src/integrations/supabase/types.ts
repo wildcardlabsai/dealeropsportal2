@@ -374,6 +374,57 @@ export type Database = {
           },
         ]
       }
+      billing_documents: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by_user_id: string | null
+          dealer_id: string
+          description: string | null
+          document_type: string
+          id: string
+          pdf_url: string | null
+          upgrade_request_id: string | null
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          created_by_user_id?: string | null
+          dealer_id: string
+          description?: string | null
+          document_type?: string
+          id?: string
+          pdf_url?: string | null
+          upgrade_request_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by_user_id?: string | null
+          dealer_id?: string
+          description?: string | null
+          document_type?: string
+          id?: string
+          pdf_url?: string | null
+          upgrade_request_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_documents_dealer_id_fkey"
+            columns: ["dealer_id"]
+            isOneToOne: false
+            referencedRelation: "dealers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_documents_upgrade_request_id_fkey"
+            columns: ["upgrade_request_id"]
+            isOneToOne: false
+            referencedRelation: "upgrade_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       communication_logs: {
         Row: {
           content: string | null
@@ -744,6 +795,60 @@ export type Database = {
             columns: ["dealer_id"]
             isOneToOne: false
             referencedRelation: "dealers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dealer_subscriptions: {
+        Row: {
+          created_at: string
+          dealer_id: string
+          id: string
+          next_review_date: string | null
+          notes: string | null
+          plan_id: string
+          start_date: string
+          status: string
+          updated_at: string
+          updated_by_user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          dealer_id: string
+          id?: string
+          next_review_date?: string | null
+          notes?: string | null
+          plan_id: string
+          start_date?: string
+          status?: string
+          updated_at?: string
+          updated_by_user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          dealer_id?: string
+          id?: string
+          next_review_date?: string | null
+          notes?: string | null
+          plan_id?: string
+          start_date?: string
+          status?: string
+          updated_at?: string
+          updated_by_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dealer_subscriptions_dealer_id_fkey"
+            columns: ["dealer_id"]
+            isOneToOne: false
+            referencedRelation: "dealers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dealer_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
             referencedColumns: ["id"]
           },
         ]
@@ -1263,6 +1368,80 @@ export type Database = {
           },
         ]
       }
+      permission_flags: {
+        Row: {
+          created_at: string
+          dealer_id: string
+          enabled: boolean
+          id: string
+          key: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          dealer_id: string
+          enabled?: boolean
+          id?: string
+          key: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          dealer_id?: string
+          enabled?: boolean
+          id?: string
+          key?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "permission_flags_dealer_id_fkey"
+            columns: ["dealer_id"]
+            isOneToOne: false
+            referencedRelation: "dealers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plans: {
+        Row: {
+          annual_price: number | null
+          created_at: string
+          features_json: Json | null
+          id: string
+          is_active: boolean
+          max_checks_per_month: number | null
+          max_users: number | null
+          monthly_price: number
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          annual_price?: number | null
+          created_at?: string
+          features_json?: Json | null
+          id?: string
+          is_active?: boolean
+          max_checks_per_month?: number | null
+          max_users?: number | null
+          monthly_price?: number
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          annual_price?: number | null
+          created_at?: string
+          features_json?: Json | null
+          id?: string
+          is_active?: boolean
+          max_checks_per_month?: number | null
+          max_users?: number | null
+          monthly_price?: number
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -1376,6 +1555,76 @@ export type Database = {
             columns: ["related_vehicle_id"]
             isOneToOne: false
             referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      upgrade_requests: {
+        Row: {
+          admin_notes: string | null
+          approved_at: string | null
+          approved_by_user_id: string | null
+          created_at: string
+          current_plan_id: string | null
+          dealer_id: string
+          declined_at: string | null
+          id: string
+          request_notes: string | null
+          requested_by_user_id: string
+          requested_plan_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          approved_at?: string | null
+          approved_by_user_id?: string | null
+          created_at?: string
+          current_plan_id?: string | null
+          dealer_id: string
+          declined_at?: string | null
+          id?: string
+          request_notes?: string | null
+          requested_by_user_id: string
+          requested_plan_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          approved_at?: string | null
+          approved_by_user_id?: string | null
+          created_at?: string
+          current_plan_id?: string | null
+          dealer_id?: string
+          declined_at?: string | null
+          id?: string
+          request_notes?: string | null
+          requested_by_user_id?: string
+          requested_plan_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upgrade_requests_current_plan_id_fkey"
+            columns: ["current_plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upgrade_requests_dealer_id_fkey"
+            columns: ["dealer_id"]
+            isOneToOne: false
+            referencedRelation: "dealers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upgrade_requests_requested_plan_id_fkey"
+            columns: ["requested_plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
             referencedColumns: ["id"]
           },
         ]
