@@ -808,6 +808,135 @@ export type Database = {
           },
         ]
       }
+      dealer_onboarding_events: {
+        Row: {
+          created_at: string | null
+          created_by_superadmin_user_id: string | null
+          dealer_id: string
+          event_type: string
+          id: string
+          payload_json: Json | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by_superadmin_user_id?: string | null
+          dealer_id: string
+          event_type: string
+          id?: string
+          payload_json?: Json | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by_superadmin_user_id?: string | null
+          dealer_id?: string
+          event_type?: string
+          id?: string
+          payload_json?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dealer_onboarding_events_dealer_id_fkey"
+            columns: ["dealer_id"]
+            isOneToOne: false
+            referencedRelation: "dealers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dealer_preferences: {
+        Row: {
+          aftersales_first_response_sla_hours: number | null
+          courtesy_agreement_template_id: string | null
+          created_at: string | null
+          data_retention_months: number | null
+          dealer_id: string
+          default_email_template_id: string | null
+          default_review_platform_id: string | null
+          default_sms_template_id: string | null
+          handover_template_id: string | null
+          invoice_trigger_review_request: string | null
+          notifications_email_enabled: boolean | null
+          notifications_inapp_enabled: boolean | null
+          task_reminder_hours: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          aftersales_first_response_sla_hours?: number | null
+          courtesy_agreement_template_id?: string | null
+          created_at?: string | null
+          data_retention_months?: number | null
+          dealer_id: string
+          default_email_template_id?: string | null
+          default_review_platform_id?: string | null
+          default_sms_template_id?: string | null
+          handover_template_id?: string | null
+          invoice_trigger_review_request?: string | null
+          notifications_email_enabled?: boolean | null
+          notifications_inapp_enabled?: boolean | null
+          task_reminder_hours?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          aftersales_first_response_sla_hours?: number | null
+          courtesy_agreement_template_id?: string | null
+          created_at?: string | null
+          data_retention_months?: number | null
+          dealer_id?: string
+          default_email_template_id?: string | null
+          default_review_platform_id?: string | null
+          default_sms_template_id?: string | null
+          handover_template_id?: string | null
+          invoice_trigger_review_request?: string | null
+          notifications_email_enabled?: boolean | null
+          notifications_inapp_enabled?: boolean | null
+          task_reminder_hours?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dealer_preferences_dealer_id_fkey"
+            columns: ["dealer_id"]
+            isOneToOne: true
+            referencedRelation: "dealers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dealer_security_settings: {
+        Row: {
+          allow_password_reset: boolean | null
+          created_at: string | null
+          dealer_id: string
+          ip_allowlist_json: Json | null
+          require_mfa: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          allow_password_reset?: boolean | null
+          created_at?: string | null
+          dealer_id: string
+          ip_allowlist_json?: Json | null
+          require_mfa?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          allow_password_reset?: boolean | null
+          created_at?: string | null
+          dealer_id?: string
+          ip_allowlist_json?: Json | null
+          require_mfa?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dealer_security_settings_dealer_id_fkey"
+            columns: ["dealer_id"]
+            isOneToOne: true
+            referencedRelation: "dealers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dealer_subscriptions: {
         Row: {
           created_at: string
@@ -866,46 +995,85 @@ export type Database = {
         Row: {
           address_line1: string | null
           address_line2: string | null
+          bank_details_text: string | null
           city: string | null
+          company_number: string | null
           created_at: string
+          default_currency: string | null
           email: string | null
+          fca_number: string | null
+          ico_number: string | null
           id: string
+          invoice_footer_text: string | null
+          is_active: boolean | null
+          legal_name: string | null
+          logo_url: string | null
           name: string
           phone: string | null
           plan_id: string | null
           postcode: string | null
+          primary_colour: string | null
           status: Database["public"]["Enums"]["dealer_status"]
+          timezone: string | null
+          trading_name: string | null
           updated_at: string
+          vat_number: string | null
           website: string | null
         }
         Insert: {
           address_line1?: string | null
           address_line2?: string | null
+          bank_details_text?: string | null
           city?: string | null
+          company_number?: string | null
           created_at?: string
+          default_currency?: string | null
           email?: string | null
+          fca_number?: string | null
+          ico_number?: string | null
           id?: string
+          invoice_footer_text?: string | null
+          is_active?: boolean | null
+          legal_name?: string | null
+          logo_url?: string | null
           name: string
           phone?: string | null
           plan_id?: string | null
           postcode?: string | null
+          primary_colour?: string | null
           status?: Database["public"]["Enums"]["dealer_status"]
+          timezone?: string | null
+          trading_name?: string | null
           updated_at?: string
+          vat_number?: string | null
           website?: string | null
         }
         Update: {
           address_line1?: string | null
           address_line2?: string | null
+          bank_details_text?: string | null
           city?: string | null
+          company_number?: string | null
           created_at?: string
+          default_currency?: string | null
           email?: string | null
+          fca_number?: string | null
+          ico_number?: string | null
           id?: string
+          invoice_footer_text?: string | null
+          is_active?: boolean | null
+          legal_name?: string | null
+          logo_url?: string | null
           name?: string
           phone?: string | null
           plan_id?: string | null
           postcode?: string | null
+          primary_colour?: string | null
           status?: Database["public"]["Enums"]["dealer_status"]
+          timezone?: string | null
+          trading_name?: string | null
           updated_at?: string
+          vat_number?: string | null
           website?: string | null
         }
         Relationships: []
@@ -1020,6 +1188,56 @@ export type Database = {
             columns: ["related_vehicle_id"]
             isOneToOne: false
             referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_outbox: {
+        Row: {
+          attachments_json: Json | null
+          body_html: string | null
+          body_text: string
+          created_at: string | null
+          dealer_id: string | null
+          error_message: string | null
+          id: string
+          sent_at: string | null
+          status: string
+          subject: string
+          to_email: string
+        }
+        Insert: {
+          attachments_json?: Json | null
+          body_html?: string | null
+          body_text: string
+          created_at?: string | null
+          dealer_id?: string | null
+          error_message?: string | null
+          id?: string
+          sent_at?: string | null
+          status?: string
+          subject: string
+          to_email: string
+        }
+        Update: {
+          attachments_json?: Json | null
+          body_html?: string | null
+          body_text?: string
+          created_at?: string | null
+          dealer_id?: string | null
+          error_message?: string | null
+          id?: string
+          sent_at?: string | null
+          status?: string
+          subject?: string
+          to_email?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_outbox_dealer_id_fkey"
+            columns: ["dealer_id"]
+            isOneToOne: false
+            referencedRelation: "dealers"
             referencedColumns: ["id"]
           },
         ]
