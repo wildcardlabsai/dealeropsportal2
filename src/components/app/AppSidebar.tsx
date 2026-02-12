@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, Users, Car, FileText, Shield, Wrench, CarFront,
   Target, ClipboardCheck, Star, FolderOpen, BarChart3, MessageSquare,
-  CreditCard, Settings, ScrollText, Search, LogOut, Building2, UsersRound
+  CreditCard, Settings, ScrollText, Search, LogOut, Building2, UsersRound, TrendingUp, Gauge
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/contexts/AuthContext";
@@ -35,6 +35,8 @@ const opsNav = [
 const adminNav = [
   { title: "Documents", url: "/app/documents", icon: FolderOpen },
   { title: "Reports", url: "/app/reports", icon: BarChart3 },
+  { title: "Staff KPIs", url: "/app/kpis", icon: TrendingUp },
+  { title: "My KPIs", url: "/app/my-kpis", icon: Gauge },
   { title: "Team", url: "/app/team", icon: UsersRound },
   { title: "Support", url: "/app/support", icon: MessageSquare },
   { title: "Billing", url: "/app/billing", icon: CreditCard },
@@ -44,6 +46,7 @@ const adminNav = [
 
 const superAdminNav = [
   { title: "Dealers", url: "/app/admin/dealers", icon: Building2 },
+  { title: "Billing Mgmt", url: "/app/admin/billing", icon: CreditCard },
 ];
 
 function NavGroup({ label, items }: { label: string; items: typeof mainNav }) {
