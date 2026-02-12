@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useVehicleCheck, useRunVehicleCheck } from "@/hooks/useVehicleChecks";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, ReferenceDot } from "recharts";
 import { format } from "date-fns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -390,40 +391,29 @@ export default function VehicleCheckDetail() {
             {mileageStatus === "no_data" ? (
               <p className="text-sm text-muted-foreground">Not enough MOT records to analyse mileage progression.</p>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {hasAnomalies && (
                   <div className="flex items-start gap-2 text-sm text-destructive">
                     <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
                     <span>Mileage decreased between MOT tests — this may indicate the odometer has been tampered with (clocked).</span>
                   </div>
                 )}
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="text-[10px] text-muted-foreground uppercase tracking-wider">
-                        <th className="text-left pb-2 pr-4">Date</th>
-                        <th className="text-left pb-2 pr-4">Mileage</th>
-                        <th className="text-left pb-2">Change</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {mileageHistory.map((entry, i) => (
-                        <tr key={i} className={entry.anomaly ? "text-destructive font-medium" : ""}>
-                          <td className="py-1.5 pr-4 text-sm">{entry.date}</td>
-                          <td className="py-1.5 pr-4 text-sm font-medium">{entry.mileage.toLocaleString()} mi</td>
-                          <td className="py-1.5 text-sm flex items-center gap-1">
-                            {entry.diff !== null ? (
-                              <>
-                                {entry.anomaly ? <TrendingDown className="h-3 w-3" /> : <TrendingUp className="h-3 w-3 text-emerald-500" />}
-                                {entry.diff >= 0 ? `+${entry.diff.toLocaleString()}` : entry.diff.toLocaleString()}
-                                {entry.anomaly && " ⚠️"}
-                              </>
-                            ) : "—"}
-                          </td>
-                        </tr>
+                <div className="h-52">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={mileageHistory.map(e => ({ ...e, label: e.date?.split?.("-").slice(0, 2).join("-") || e.date }))} margin={{ top: 8, right: 12, bottom: 4, left: 12 }}>
+                      <XAxis dataKey="label" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+                      <YAxis tickFormatter={(v: number) => `${(v / 1000).toFixed(0)}k`} tick={{ fontSize: 11 }} tickLine={false} axisLine={false} width={40} />
+                      <Tooltip
+                        contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }}
+                        formatter={(value: number) => [`${value.toLocaleString()} mi`, "Mileage"]}
+                        labelFormatter={(label: string) => `MOT: ${label}`}
+                      />
+                      <Line type="monotone" dataKey="mileage" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 4, fill: "hsl(var(--primary))" }} activeDot={{ r: 6 }} />
+                      {mileageHistory.filter(e => e.anomaly).map((e, i) => (
+                        <ReferenceDot key={i} x={e.date?.split?.("-").slice(0, 2).join("-") || e.date} y={e.mileage} r={6} fill="hsl(var(--destructive))" stroke="hsl(var(--destructive))" />
                       ))}
-                    </tbody>
-                  </table>
+                    </LineChart>
+                  </ResponsiveContainer>
                 </div>
               </div>
             )}
