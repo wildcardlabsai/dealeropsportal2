@@ -61,6 +61,7 @@ import HandoverDetail from "./pages/app/handovers/HandoverDetail";
 import CRAShieldList from "./pages/app/cra/CRAShieldList";
 import CRAShieldCreate from "./pages/app/cra/CRAShieldCreate";
 import CRAShieldDetail from "./pages/app/cra/CRAShieldDetail";
+import ComplianceCentre from "./pages/app/compliance/ComplianceCentre";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -147,6 +148,9 @@ const App = () => (
 
               {/* Audit Log */}
               <Route path="audit" element={<AuditLog />} />
+
+              {/* Compliance Centre */}
+              <Route path="compliance" element={<ComplianceCentre />} />
 
               {/* Settings */}
               <Route path="settings" element={<SettingsPage />} />

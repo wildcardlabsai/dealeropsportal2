@@ -492,6 +492,175 @@ export type Database = {
           },
         ]
       }
+      complaints: {
+        Row: {
+          assigned_to_user_id: string | null
+          category: Database["public"]["Enums"]["complaint_category"]
+          channel: Database["public"]["Enums"]["complaint_channel"]
+          complaint_ref: string
+          created_at: string
+          customer_id: string | null
+          customer_name: string
+          dealer_id: string
+          description: string
+          goodwill_amount: number | null
+          id: string
+          received_at: string
+          resolution_at: string | null
+          resolution_summary: string | null
+          status: Database["public"]["Enums"]["complaint_status"]
+          updated_at: string
+        }
+        Insert: {
+          assigned_to_user_id?: string | null
+          category?: Database["public"]["Enums"]["complaint_category"]
+          channel?: Database["public"]["Enums"]["complaint_channel"]
+          complaint_ref?: string
+          created_at?: string
+          customer_id?: string | null
+          customer_name: string
+          dealer_id: string
+          description: string
+          goodwill_amount?: number | null
+          id?: string
+          received_at?: string
+          resolution_at?: string | null
+          resolution_summary?: string | null
+          status?: Database["public"]["Enums"]["complaint_status"]
+          updated_at?: string
+        }
+        Update: {
+          assigned_to_user_id?: string | null
+          category?: Database["public"]["Enums"]["complaint_category"]
+          channel?: Database["public"]["Enums"]["complaint_channel"]
+          complaint_ref?: string
+          created_at?: string
+          customer_id?: string | null
+          customer_name?: string
+          dealer_id?: string
+          description?: string
+          goodwill_amount?: number | null
+          id?: string
+          received_at?: string
+          resolution_at?: string | null
+          resolution_summary?: string | null
+          status?: Database["public"]["Enums"]["complaint_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "complaints_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "complaints_dealer_id_fkey"
+            columns: ["dealer_id"]
+            isOneToOne: false
+            referencedRelation: "dealers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      compliance_documents: {
+        Row: {
+          content: string
+          created_at: string
+          dealer_id: string
+          doc_type: Database["public"]["Enums"]["compliance_doc_type"]
+          id: string
+          is_active: boolean
+          title: string
+          updated_at: string
+          updated_by_user_id: string | null
+          version: string
+        }
+        Insert: {
+          content?: string
+          created_at?: string
+          dealer_id: string
+          doc_type: Database["public"]["Enums"]["compliance_doc_type"]
+          id?: string
+          is_active?: boolean
+          title: string
+          updated_at?: string
+          updated_by_user_id?: string | null
+          version?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          dealer_id?: string
+          doc_type?: Database["public"]["Enums"]["compliance_doc_type"]
+          id?: string
+          is_active?: boolean
+          title?: string
+          updated_at?: string
+          updated_by_user_id?: string | null
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compliance_documents_dealer_id_fkey"
+            columns: ["dealer_id"]
+            isOneToOne: false
+            referencedRelation: "dealers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      compliance_incidents: {
+        Row: {
+          actions_taken: string | null
+          created_at: string
+          created_by_user_id: string
+          dealer_id: string
+          description: string
+          id: string
+          occurred_at: string
+          severity: Database["public"]["Enums"]["incident_severity"]
+          status: Database["public"]["Enums"]["incident_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          actions_taken?: string | null
+          created_at?: string
+          created_by_user_id: string
+          dealer_id: string
+          description: string
+          id?: string
+          occurred_at?: string
+          severity?: Database["public"]["Enums"]["incident_severity"]
+          status?: Database["public"]["Enums"]["incident_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          actions_taken?: string | null
+          created_at?: string
+          created_by_user_id?: string
+          dealer_id?: string
+          description?: string
+          id?: string
+          occurred_at?: string
+          severity?: Database["public"]["Enums"]["incident_severity"]
+          status?: Database["public"]["Enums"]["incident_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compliance_incidents_dealer_id_fkey"
+            columns: ["dealer_id"]
+            isOneToOne: false
+            referencedRelation: "dealers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_leads: {
         Row: {
           created_at: string
@@ -1006,6 +1175,69 @@ export type Database = {
           },
         ]
       }
+      customer_consents: {
+        Row: {
+          captured_at: string
+          captured_by_user_id: string
+          consent_type: Database["public"]["Enums"]["consent_type"]
+          created_at: string
+          customer_id: string
+          dealer_id: string
+          id: string
+          legal_basis: Database["public"]["Enums"]["legal_basis"]
+          notes: string | null
+          source: string | null
+          status: Database["public"]["Enums"]["consent_status"]
+          updated_at: string
+          withdrawn_at: string | null
+        }
+        Insert: {
+          captured_at?: string
+          captured_by_user_id: string
+          consent_type: Database["public"]["Enums"]["consent_type"]
+          created_at?: string
+          customer_id: string
+          dealer_id: string
+          id?: string
+          legal_basis?: Database["public"]["Enums"]["legal_basis"]
+          notes?: string | null
+          source?: string | null
+          status?: Database["public"]["Enums"]["consent_status"]
+          updated_at?: string
+          withdrawn_at?: string | null
+        }
+        Update: {
+          captured_at?: string
+          captured_by_user_id?: string
+          consent_type?: Database["public"]["Enums"]["consent_type"]
+          created_at?: string
+          customer_id?: string
+          dealer_id?: string
+          id?: string
+          legal_basis?: Database["public"]["Enums"]["legal_basis"]
+          notes?: string | null
+          source?: string | null
+          status?: Database["public"]["Enums"]["consent_status"]
+          updated_at?: string
+          withdrawn_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_consents_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_consents_dealer_id_fkey"
+            columns: ["dealer_id"]
+            isOneToOne: false
+            referencedRelation: "dealers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customers: {
         Row: {
           address_line1: string | null
@@ -1076,6 +1308,84 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "customers_dealer_id_fkey"
+            columns: ["dealer_id"]
+            isOneToOne: false
+            referencedRelation: "dealers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      data_subject_requests: {
+        Row: {
+          assigned_to_user_id: string | null
+          created_at: string
+          customer_id: string | null
+          dealer_id: string
+          due_at: string
+          exported_data_url: string | null
+          id: string
+          identity_verification_notes: string | null
+          identity_verified: boolean
+          outcome_notes: string | null
+          received_at: string
+          request_number: string
+          request_type: Database["public"]["Enums"]["dsr_type"]
+          requester_email: string | null
+          requester_name: string
+          requester_phone: string | null
+          status: Database["public"]["Enums"]["dsr_status"]
+          updated_at: string
+        }
+        Insert: {
+          assigned_to_user_id?: string | null
+          created_at?: string
+          customer_id?: string | null
+          dealer_id: string
+          due_at?: string
+          exported_data_url?: string | null
+          id?: string
+          identity_verification_notes?: string | null
+          identity_verified?: boolean
+          outcome_notes?: string | null
+          received_at?: string
+          request_number?: string
+          request_type: Database["public"]["Enums"]["dsr_type"]
+          requester_email?: string | null
+          requester_name: string
+          requester_phone?: string | null
+          status?: Database["public"]["Enums"]["dsr_status"]
+          updated_at?: string
+        }
+        Update: {
+          assigned_to_user_id?: string | null
+          created_at?: string
+          customer_id?: string | null
+          dealer_id?: string
+          due_at?: string
+          exported_data_url?: string | null
+          id?: string
+          identity_verification_notes?: string | null
+          identity_verified?: boolean
+          outcome_notes?: string | null
+          received_at?: string
+          request_number?: string
+          request_type?: Database["public"]["Enums"]["dsr_type"]
+          requester_email?: string | null
+          requester_name?: string
+          requester_phone?: string | null
+          status?: Database["public"]["Enums"]["dsr_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "data_subject_requests_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "data_subject_requests_dealer_id_fkey"
             columns: ["dealer_id"]
             isOneToOne: false
             referencedRelation: "dealers"
@@ -2477,6 +2787,112 @@ export type Database = {
           },
         ]
       }
+      retention_queue: {
+        Row: {
+          approved_at: string | null
+          approved_by_user_id: string | null
+          created_at: string
+          dealer_id: string
+          deleted_at: string | null
+          eligible_at: string
+          entity_id: string
+          entity_type: Database["public"]["Enums"]["retention_entity_type"]
+          id: string
+          notes: string | null
+          reason: string | null
+          status: Database["public"]["Enums"]["retention_queue_status"]
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by_user_id?: string | null
+          created_at?: string
+          dealer_id: string
+          deleted_at?: string | null
+          eligible_at: string
+          entity_id: string
+          entity_type: Database["public"]["Enums"]["retention_entity_type"]
+          id?: string
+          notes?: string | null
+          reason?: string | null
+          status?: Database["public"]["Enums"]["retention_queue_status"]
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by_user_id?: string | null
+          created_at?: string
+          dealer_id?: string
+          deleted_at?: string | null
+          eligible_at?: string
+          entity_id?: string
+          entity_type?: Database["public"]["Enums"]["retention_entity_type"]
+          id?: string
+          notes?: string | null
+          reason?: string | null
+          status?: Database["public"]["Enums"]["retention_queue_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "retention_queue_dealer_id_fkey"
+            columns: ["dealer_id"]
+            isOneToOne: false
+            referencedRelation: "dealers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      retention_settings: {
+        Row: {
+          aftersales_retention_months: number
+          auto_delete_enabled: boolean
+          courtesy_loans_retention_months: number
+          created_at: string
+          customers_retention_months: number
+          dealer_id: string
+          invoices_retention_months: number
+          last_retention_run_at: string | null
+          tasks_retention_months: number
+          updated_at: string
+          vehicle_checks_retention_months: number
+          warranty_retention_months: number
+        }
+        Insert: {
+          aftersales_retention_months?: number
+          auto_delete_enabled?: boolean
+          courtesy_loans_retention_months?: number
+          created_at?: string
+          customers_retention_months?: number
+          dealer_id: string
+          invoices_retention_months?: number
+          last_retention_run_at?: string | null
+          tasks_retention_months?: number
+          updated_at?: string
+          vehicle_checks_retention_months?: number
+          warranty_retention_months?: number
+        }
+        Update: {
+          aftersales_retention_months?: number
+          auto_delete_enabled?: boolean
+          courtesy_loans_retention_months?: number
+          created_at?: string
+          customers_retention_months?: number
+          dealer_id?: string
+          invoices_retention_months?: number
+          last_retention_run_at?: string | null
+          tasks_retention_months?: number
+          updated_at?: string
+          vehicle_checks_retention_months?: number
+          warranty_retention_months?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "retention_settings_dealer_id_fkey"
+            columns: ["dealer_id"]
+            isOneToOne: true
+            referencedRelation: "dealers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       support_attachments: {
         Row: {
           created_at: string
@@ -3261,6 +3677,30 @@ export type Database = {
       app_role: "super_admin" | "dealer_admin" | "dealer_user"
       check_provider_status: "success" | "failed" | "not_run"
       check_run_status: "success" | "partial" | "failed"
+      complaint_category:
+        | "service"
+        | "vehicle_quality"
+        | "finance"
+        | "warranty"
+        | "aftersales"
+        | "other"
+      complaint_channel: "phone" | "email" | "in_person" | "letter" | "other"
+      complaint_status: "open" | "under_investigation" | "resolved" | "closed"
+      compliance_doc_type:
+        | "privacy_notice"
+        | "complaints_policy"
+        | "data_retention_policy"
+        | "customer_dispute_template"
+        | "subject_access_template"
+        | "erasure_confirmation_template"
+        | "other"
+      consent_status: "granted" | "withdrawn"
+      consent_type:
+        | "marketing_email"
+        | "marketing_sms"
+        | "marketing_call"
+        | "whatsapp"
+        | "data_sharing_third_party"
       contact_method: "phone" | "email" | "whatsapp" | "post"
       courtesy_car_status: "available" | "on_loan" | "in_service" | "retired"
       cra_case_status:
@@ -3291,6 +3731,14 @@ export type Database = {
         | "over_6_months"
       cra_window: "within_30_days" | "day_31_to_6_months" | "over_6_months"
       dealer_status: "active" | "suspended" | "pending"
+      dsr_status: "new" | "in_review" | "awaiting_id" | "completed" | "rejected"
+      dsr_type:
+        | "sar"
+        | "erasure"
+        | "rectification"
+        | "restriction"
+        | "objection"
+        | "portability"
       fuel_type:
         | "petrol"
         | "diesel"
@@ -3298,6 +3746,8 @@ export type Database = {
         | "hybrid"
         | "plug_in_hybrid"
         | "other"
+      incident_severity: "low" | "medium" | "high" | "critical"
+      incident_status: "open" | "monitoring" | "closed"
       invoice_status: "draft" | "sent" | "paid" | "overdue" | "cancelled"
       lead_source:
         | "walk_in"
@@ -3320,7 +3770,18 @@ export type Database = {
         | "finance"
         | "reserved"
         | "sold"
+      legal_basis: "consent" | "legitimate_interest"
       payment_method_type: "bacs" | "card" | "cash" | "finance" | "other"
+      retention_entity_type:
+        | "customer"
+        | "invoice"
+        | "aftersales"
+        | "warranty"
+        | "vehicle_check"
+        | "task"
+        | "courtesy_loan"
+        | "document"
+      retention_queue_status: "pending" | "approved" | "deleted" | "skipped"
       sale_type: "cash" | "finance" | "part_finance"
       task_priority: "low" | "medium" | "high" | "urgent"
       task_status: "todo" | "in_progress" | "done" | "cancelled"
@@ -3500,6 +3961,33 @@ export const Constants = {
       app_role: ["super_admin", "dealer_admin", "dealer_user"],
       check_provider_status: ["success", "failed", "not_run"],
       check_run_status: ["success", "partial", "failed"],
+      complaint_category: [
+        "service",
+        "vehicle_quality",
+        "finance",
+        "warranty",
+        "aftersales",
+        "other",
+      ],
+      complaint_channel: ["phone", "email", "in_person", "letter", "other"],
+      complaint_status: ["open", "under_investigation", "resolved", "closed"],
+      compliance_doc_type: [
+        "privacy_notice",
+        "complaints_policy",
+        "data_retention_policy",
+        "customer_dispute_template",
+        "subject_access_template",
+        "erasure_confirmation_template",
+        "other",
+      ],
+      consent_status: ["granted", "withdrawn"],
+      consent_type: [
+        "marketing_email",
+        "marketing_sms",
+        "marketing_call",
+        "whatsapp",
+        "data_sharing_third_party",
+      ],
       contact_method: ["phone", "email", "whatsapp", "post"],
       courtesy_car_status: ["available", "on_loan", "in_service", "retired"],
       cra_case_status: [
@@ -3533,6 +4021,15 @@ export const Constants = {
       ],
       cra_window: ["within_30_days", "day_31_to_6_months", "over_6_months"],
       dealer_status: ["active", "suspended", "pending"],
+      dsr_status: ["new", "in_review", "awaiting_id", "completed", "rejected"],
+      dsr_type: [
+        "sar",
+        "erasure",
+        "rectification",
+        "restriction",
+        "objection",
+        "portability",
+      ],
       fuel_type: [
         "petrol",
         "diesel",
@@ -3541,6 +4038,8 @@ export const Constants = {
         "plug_in_hybrid",
         "other",
       ],
+      incident_severity: ["low", "medium", "high", "critical"],
+      incident_status: ["open", "monitoring", "closed"],
       invoice_status: ["draft", "sent", "paid", "overdue", "cancelled"],
       lead_source: [
         "walk_in",
@@ -3565,7 +4064,19 @@ export const Constants = {
         "reserved",
         "sold",
       ],
+      legal_basis: ["consent", "legitimate_interest"],
       payment_method_type: ["bacs", "card", "cash", "finance", "other"],
+      retention_entity_type: [
+        "customer",
+        "invoice",
+        "aftersales",
+        "warranty",
+        "vehicle_check",
+        "task",
+        "courtesy_loan",
+        "document",
+      ],
+      retention_queue_status: ["pending", "approved", "deleted", "skipped"],
       sale_type: ["cash", "finance", "part_finance"],
       task_priority: ["low", "medium", "high", "urgent"],
       task_status: ["todo", "in_progress", "done", "cancelled"],

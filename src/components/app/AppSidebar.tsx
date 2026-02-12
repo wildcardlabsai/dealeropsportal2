@@ -1,5 +1,5 @@
 import {
-  LayoutDashboard, Users, Car, FileText, Shield, ShieldAlert, Wrench, CarFront,
+  LayoutDashboard, Users, Car, FileText, Shield, ShieldAlert, ShieldCheck, Wrench, CarFront,
   Target, ClipboardCheck, Star, FolderOpen, BarChart3, MessageSquare,
   CreditCard, Settings, ScrollText, Search, LogOut, Building2, UsersRound, TrendingUp, Gauge, PackageCheck
 } from "lucide-react";
@@ -35,6 +35,7 @@ const opsNav = [
 ];
 
 const adminNav = [
+  { title: "Compliance", url: "/app/compliance", icon: ShieldCheck },
   { title: "Documents", url: "/app/documents", icon: FolderOpen },
   { title: "Reports", url: "/app/reports", icon: BarChart3 },
   { title: "Staff KPIs", url: "/app/kpis", icon: TrendingUp },
