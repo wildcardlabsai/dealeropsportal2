@@ -17,6 +17,8 @@ import Dashboard from "./pages/app/Dashboard";
 import DocumentList from "./pages/app/documents/DocumentList";
 import ReviewBooster from "./pages/app/reviews/ReviewBooster";
 import SupportTickets from "./pages/app/support/SupportTickets";
+import SupportTicketDetail from "./pages/app/support/SupportTicketDetail";
+import SuperAdminSupport from "./pages/app/admin/SuperAdminSupport";
 import BillingPage from "./pages/app/billing/BillingPage";
 import SuperAdminDealers from "./pages/app/admin/SuperAdminDealers";
 import SuperAdminBilling from "./pages/app/admin/SuperAdminBilling";
@@ -138,6 +140,7 @@ const App = () => (
               <Route path="documents" element={<DocumentList />} />
               <Route path="reports" element={<ReportsPage />} />
               <Route path="support" element={<SupportTickets />} />
+              <Route path="support/:id" element={<SupportTicketDetail />} />
               <Route path="billing" element={<BillingPage />} />
               <Route path="team" element={<TeamManagement />} />
               <Route path="kpis" element={<KPIDashboard />} />
@@ -145,6 +148,7 @@ const App = () => (
               <Route path="my-kpis" element={<MyKPIs />} />
               <Route path="admin/dealers" element={<SuperAdminDealers />} />
               <Route path="admin/billing" element={<SuperAdminBilling />} />
+              <Route path="admin/support" element={<SuperAdminSupport />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />

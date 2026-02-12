@@ -47,6 +47,7 @@ const adminNav = [
 const superAdminNav = [
   { title: "Dealers", url: "/app/admin/dealers", icon: Building2 },
   { title: "Billing Mgmt", url: "/app/admin/billing", icon: CreditCard },
+  { title: "Support Inbox", url: "/app/admin/support", icon: MessageSquare },
 ];
 
 function NavGroup({ label, items }: { label: string; items: typeof mainNav }) {
