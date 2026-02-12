@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, CheckCircle2, XCircle, AlertTriangle, Copy, ChevronDown, ChevronUp, Lock, Info, Car, RefreshCw, Plus, Link2, FileDown, Mail, Loader2 } from "lucide-react";
+import { ArrowLeft, CheckCircle2, XCircle, AlertTriangle, Copy, ChevronDown, ChevronUp, Lock, Info, Car, RefreshCw, Plus, Link2, FileDown, Mail, Loader2, Gauge, TrendingUp, TrendingDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useVehicleCheck, useRunVehicleCheck } from "@/hooks/useVehicleChecks";
@@ -93,6 +93,33 @@ export default function VehicleCheckDetail() {
   const dvsa = check.dvsa_json as any;
   const gvd = check.gvd_json as any;
 
+  // --- Mileage Analysis ---
+  const getMotTests = () => {
+    if (!dvsa) return [];
+    const tests = dvsa.motTests || (Array.isArray(dvsa) ? dvsa : []);
+    return tests.filter((t: any) => t.odometerValue != null).sort((a: any, b: any) => {
+      const da = new Date(a.completedDate || "").getTime();
+      const db = new Date(b.completedDate || "").getTime();
+      return da - db; // oldest first
+    });
+  };
+
+  const motTestsSorted = getMotTests();
+
+  type MileageEntry = { date: string; mileage: number; anomaly: boolean; diff: number | null; prevMileage: number | null };
+
+  const mileageHistory: MileageEntry[] = motTestsSorted.map((t: any, i: number) => {
+    const mileage = Number(t.odometerValue);
+    const prevMileage = i > 0 ? Number(motTestsSorted[i - 1].odometerValue) : null;
+    const diff = prevMileage !== null ? mileage - prevMileage : null;
+    const anomaly = diff !== null && diff < 0;
+    return { date: t.completedDate, mileage, anomaly, diff, prevMileage };
+  });
+
+  const hasAnomalies = mileageHistory.some(e => e.anomaly);
+  const mileageStatus: "clear" | "warning" | "no_data" = motTestsSorted.length < 2 ? "no_data" : hasAnomalies ? "warning" : "clear";
+
+  // --- Handlers ---
   const handleRerun = async () => {
     try {
       const data = await runCheck.mutateAsync({ vrm: check.vrm, forceFresh: true });
@@ -116,25 +143,60 @@ export default function VehicleCheckDetail() {
     navigate(`/app/vehicles/new?${params.toString()}`);
   };
 
+  const buildMileageAnalysisHtml = () => {
+    if (mileageHistory.length < 2) return `<div style="padding:12px;background:#f8f9fa;border-radius:8px;color:#666;font-size:13px;">Insufficient MOT data for mileage analysis.</div>`;
+    
+    const statusColor = hasAnomalies ? "#ef4444" : "#22c55e";
+    const statusText = hasAnomalies ? "⚠️ Mileage Anomaly Detected" : "✅ Mileage Consistent";
+    
+    let tableRows = mileageHistory.map(e => {
+      const bg = e.anomaly ? "background:#fef2f2;" : "";
+      const diffText = e.diff !== null ? (e.diff >= 0 ? `+${e.diff.toLocaleString()}` : `${e.diff.toLocaleString()}`) : "—";
+      const diffColor = e.anomaly ? "color:#ef4444;font-weight:600;" : "color:#666;";
+      return `<tr style="${bg}">
+        <td style="padding:6px 12px;border-bottom:1px solid #e5e7eb;font-size:13px;">${e.date}</td>
+        <td style="padding:6px 12px;border-bottom:1px solid #e5e7eb;font-size:13px;font-weight:500;">${e.mileage.toLocaleString()} mi</td>
+        <td style="padding:6px 12px;border-bottom:1px solid #e5e7eb;font-size:13px;${diffColor}">${diffText}${e.anomaly ? " ⚠️" : ""}</td>
+      </tr>`;
+    }).join("");
+
+    return `<div style="margin-bottom:8px;padding:12px 16px;background:${hasAnomalies ? "#fef2f2" : "#f0fdf4"};border-left:4px solid ${statusColor};border-radius:0 8px 8px 0;font-weight:600;font-size:14px;color:${statusColor};">${statusText}</div>
+      <table style="width:100%;border-collapse:collapse;margin-top:8px;">
+        <thead><tr style="background:#f8f9fa;">
+          <th style="padding:6px 12px;text-align:left;font-size:11px;text-transform:uppercase;color:#666;border-bottom:2px solid #e5e7eb;">Date</th>
+          <th style="padding:6px 12px;text-align:left;font-size:11px;text-transform:uppercase;color:#666;border-bottom:2px solid #e5e7eb;">Mileage</th>
+          <th style="padding:6px 12px;text-align:left;font-size:11px;text-transform:uppercase;color:#666;border-bottom:2px solid #e5e7eb;">Change</th>
+        </tr></thead>
+        <tbody>${tableRows}</tbody>
+      </table>`;
+  };
+
   const buildReportHtml = () => {
     const s = summary || {};
     const checkedDate = format(new Date(check.created_at), "d MMM yyyy 'at' HH:mm");
-    const row = (label: string, value: any) => value != null && value !== "" ? `<tr><td style="padding:4px 12px 4px 0;color:#666;font-size:13px;">${label}</td><td style="padding:4px 0;font-size:13px;font-weight:500;">${value}</td></tr>` : "";
-    
+    const row = (label: string, value: any) => value != null && value !== "" 
+      ? `<tr><td style="padding:8px 16px 8px 0;color:#64748b;font-size:13px;white-space:nowrap;">${label}</td><td style="padding:8px 0;font-size:13px;font-weight:500;color:#1e293b;">${value}</td></tr>` 
+      : "";
+
     let motHtml = "";
     const motTests = dvsa?.motTests || (Array.isArray(dvsa) ? dvsa : []);
     if (motTests.length > 0) {
-      motHtml = `<h2 style="margin-top:24px;font-size:16px;">MOT History (${motTests.length} tests)</h2>`;
+      motHtml = `<h2>MOT History <span style="font-weight:400;color:#64748b;font-size:13px;">(${motTests.length} tests)</span></h2>`;
       motTests.forEach((t: any) => {
-        const color = t.testResult === "PASSED" ? "#22c55e" : "#ef4444";
-        motHtml += `<div style="margin:8px 0;padding:10px;border:1px solid #e5e7eb;border-radius:8px;">
-          <span style="color:${color};font-weight:600;">${t.testResult}</span> — ${t.completedDate || ""}
-          ${t.odometerValue ? ` · ${Number(t.odometerValue).toLocaleString()} mi` : ""}
-          ${t.expiryDate ? ` · Expires: ${t.expiryDate}` : ""}`;
+        const passed = t.testResult === "PASSED";
+        const color = passed ? "#16a34a" : "#dc2626";
+        const bg = passed ? "#f0fdf4" : "#fef2f2";
+        const border = passed ? "#bbf7d0" : "#fecaca";
+        motHtml += `<div style="margin:8px 0;padding:12px 16px;border:1px solid ${border};border-radius:8px;background:${bg};">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div><span style="color:${color};font-weight:600;font-size:13px;">${t.testResult}</span><span style="color:#64748b;font-size:13px;margin-left:8px;">${t.completedDate || ""}</span></div>
+            <div style="font-size:12px;color:#64748b;">${t.odometerValue ? Number(t.odometerValue).toLocaleString() + " mi" : ""}${t.expiryDate ? " · Expires: " + t.expiryDate : ""}</div>
+          </div>`;
         if (t.rfrAndComments?.length > 0) {
-          motHtml += `<div style="margin-top:6px;font-size:12px;">`;
+          motHtml += `<div style="margin-top:8px;padding-top:8px;border-top:1px solid ${border};">`;
           t.rfrAndComments.forEach((c: any) => {
-            motHtml += `<div style="color:${c.type === "FAIL" ? "#ef4444" : c.type === "ADVISORY" ? "#f59e0b" : "#666"};">[${c.type}] ${c.text}</div>`;
+            const typeColor = c.type === "FAIL" ? "#dc2626" : c.type === "ADVISORY" ? "#d97706" : "#64748b";
+            motHtml += `<div style="font-size:12px;margin:3px 0;"><span style="color:${typeColor};font-weight:600;font-size:11px;text-transform:uppercase;margin-right:6px;">${c.type}</span><span style="color:#475569;">${c.text}</span></div>`;
           });
           motHtml += `</div>`;
         }
@@ -142,22 +204,59 @@ export default function VehicleCheckDetail() {
       });
     }
 
-    return `<!DOCTYPE html><html><head><title>Vehicle Check Report – ${check.vrm}</title>
-      <style>body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;margin:40px;color:#1a1a1a;}
-      h1{font-size:22px;margin-bottom:4px;}h2{font-size:16px;margin-top:20px;border-bottom:1px solid #e5e7eb;padding-bottom:6px;}
-      table{border-collapse:collapse;width:100%;}
-      @media print{body{margin:20px;}}</style></head>
+    const mileageHtml = buildMileageAnalysisHtml();
+
+    return `<!DOCTYPE html><html><head><title>Vehicle Check Report – ${check.vrm} | DealerOps</title>
+      <style>
+        * { box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 40px; color: #1e293b; background: #fff; }
+        .header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 20px; border-bottom: 2px solid #e2e8f0; margin-bottom: 24px; }
+        .header h1 { font-size: 24px; margin: 0 0 4px 0; letter-spacing: -0.5px; }
+        .header .meta { font-size: 12px; color: #64748b; }
+        .brand { font-size: 14px; font-weight: 700; color: #3b82f6; text-transform: uppercase; letter-spacing: 1px; }
+        h2 { font-size: 15px; font-weight: 700; margin: 28px 0 12px 0; padding-bottom: 8px; border-bottom: 2px solid #e2e8f0; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px; }
+        table { border-collapse: collapse; width: 100%; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 8px; }
+        .card { border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; background: #f8fafc; }
+        .card h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; margin: 0 0 12px 0; font-weight: 600; }
+        .footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #e2e8f0; font-size: 11px; color: #94a3b8; display: flex; justify-content: space-between; }
+        @media print { body { margin: 16px; padding: 16px; } .header { page-break-after: avoid; } }
+      </style></head>
       <body>
-        <h1>Vehicle Check Report: ${check.vrm}</h1>
-        <p style="color:#666;font-size:13px;margin-bottom:20px;">Generated ${checkedDate}</p>
-        <h2>Vehicle Details</h2>
-        <table>${row("Make", s.make)}${row("Model", s.model)}${row("Colour", s.colour)}${row("Fuel Type", s.fuelType)}${row("Year", s.yearOfManufacture)}${row("Engine", s.engineCapacity ? s.engineCapacity + "cc" : null)}${row("First Registered", s.firstRegistrationDate)}${row("VIN", s.vin)}</table>
-        <h2>Tax &amp; MOT</h2>
-        <table>${row("Tax Status", s.taxed === true ? "Taxed" : s.taxed === false ? "Untaxed" : null)}${row("Tax Due", s.taxDueDate)}${row("MOT Status", s.motStatus || s.latestMotResult)}${row("MOT Expiry", s.motExpiryDate)}${row("Latest MOT", s.latestMotDate)}${row("MOT Mileage", s.latestMotMileage ? Number(s.latestMotMileage).toLocaleString() : null)}</table>
-        <h2>Ownership</h2>
-        <table>${row("Owners", s.numberOfOwners)}${row("Body Type", s.bodyType)}${row("Doors", s.doors)}${row("Seats", s.seats)}${row("Insurance Group", s.insuranceGroup)}</table>
-        ${motHtml}
-        <p style="margin-top:30px;font-size:11px;color:#999;border-top:1px solid #e5e7eb;padding-top:10px;">Report generated by DealerDash. Data sourced from DVLA, DVSA & GVD.</p>
+        <div class="header">
+          <div>
+            <h1>Vehicle Check Report</h1>
+            <div class="meta"><strong style="font-size:20px;font-family:monospace;color:#0f172a;">${check.vrm}</strong> · Generated ${checkedDate}</div>
+          </div>
+          <div class="brand">DealerOps</div>
+        </div>
+
+        <div class="grid">
+          <div class="card">
+            <h3>Vehicle Details</h3>
+            <table>${row("Make", s.make)}${row("Model", s.model)}${row("Colour", s.colour)}${row("Fuel Type", s.fuelType)}${row("Year", s.yearOfManufacture)}${row("Engine", s.engineCapacity ? s.engineCapacity + "cc" : null)}${row("First Registered", s.firstRegistrationDate)}${row("VIN", s.vin)}</table>
+          </div>
+          <div class="card">
+            <h3>Tax &amp; MOT Status</h3>
+            <table>${row("Tax Status", s.taxed === true ? "Taxed" : s.taxed === false ? "Untaxed" : null)}${row("Tax Due", s.taxDueDate)}${row("MOT Status", s.motStatus || s.latestMotResult)}${row("MOT Expiry", s.motExpiryDate)}${row("Latest MOT", s.latestMotDate)}${row("MOT Mileage", s.latestMotMileage ? Number(s.latestMotMileage).toLocaleString() + " mi" : null)}</table>
+          </div>
+        </div>
+        <div class="grid">
+          <div class="card">
+            <h3>Ownership &amp; Specs</h3>
+            <table>${row("Owners", s.numberOfOwners)}${row("Body Type", s.bodyType)}${row("Doors", s.doors)}${row("Seats", s.seats)}${row("Insurance Group", s.insuranceGroup)}</table>
+          </div>
+        </div>
+
+        <h2>Mileage Analysis</h2>
+        ${mileageHtml}
+
+        ${motHtml ? `<h2>MOT History</h2>${motHtml.replace(/<h2>.*?<\/h2>/, "")}` : ""}
+
+        <div class="footer">
+          <span>Report generated by DealerOps · www.dealerops.uk</span>
+          <span>Data sourced from DVLA, DVSA &amp; GVD</span>
+        </div>
       </body></html>`;
   };
 
@@ -274,6 +373,60 @@ export default function VehicleCheckDetail() {
                 <DataField label="Insurance Group" value={summary?.insuranceGroup} />
               </div>
             </div>
+          </div>
+
+          {/* Mileage Analysis Card */}
+          <div className={`mt-4 p-5 rounded-xl border space-y-3 ${
+            mileageStatus === "warning" ? "border-destructive/50 bg-destructive/5" : 
+            mileageStatus === "clear" ? "border-emerald-500/30 bg-emerald-500/5" : 
+            "border-border/50 bg-card/50"
+          }`}>
+            <h3 className="text-sm font-semibold flex items-center gap-2">
+              <Gauge className="h-4 w-4" /> Mileage Analysis
+              {mileageStatus === "warning" && <Badge variant="destructive" className="text-[10px]">Anomaly Detected</Badge>}
+              {mileageStatus === "clear" && <Badge className="bg-emerald-500/20 text-emerald-500 border-emerald-500/30 text-[10px]">Consistent</Badge>}
+              {mileageStatus === "no_data" && <Badge variant="secondary" className="text-[10px]">Insufficient Data</Badge>}
+            </h3>
+            {mileageStatus === "no_data" ? (
+              <p className="text-sm text-muted-foreground">Not enough MOT records to analyse mileage progression.</p>
+            ) : (
+              <div className="space-y-2">
+                {hasAnomalies && (
+                  <div className="flex items-start gap-2 text-sm text-destructive">
+                    <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+                    <span>Mileage decreased between MOT tests — this may indicate the odometer has been tampered with (clocked).</span>
+                  </div>
+                )}
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                        <th className="text-left pb-2 pr-4">Date</th>
+                        <th className="text-left pb-2 pr-4">Mileage</th>
+                        <th className="text-left pb-2">Change</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {mileageHistory.map((entry, i) => (
+                        <tr key={i} className={entry.anomaly ? "text-destructive font-medium" : ""}>
+                          <td className="py-1.5 pr-4 text-sm">{entry.date}</td>
+                          <td className="py-1.5 pr-4 text-sm font-medium">{entry.mileage.toLocaleString()} mi</td>
+                          <td className="py-1.5 text-sm flex items-center gap-1">
+                            {entry.diff !== null ? (
+                              <>
+                                {entry.anomaly ? <TrendingDown className="h-3 w-3" /> : <TrendingUp className="h-3 w-3 text-emerald-500" />}
+                                {entry.diff >= 0 ? `+${entry.diff.toLocaleString()}` : entry.diff.toLocaleString()}
+                                {entry.anomaly && " ⚠️"}
+                              </>
+                            ) : "—"}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
           </div>
 
           {check.error_message && (
