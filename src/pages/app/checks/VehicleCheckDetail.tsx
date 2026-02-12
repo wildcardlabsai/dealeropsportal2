@@ -145,7 +145,8 @@ export default function VehicleCheckDetail() {
           <TabsTrigger value="dvla">DVLA Details</TabsTrigger>
           <TabsTrigger value="mot">DVSA MOT</TabsTrigger>
           <TabsTrigger value="gvd">Vehicle Data</TabsTrigger>
-          <TabsTrigger value="coming" disabled>Coming Soon</TabsTrigger>
+          <TabsTrigger value="valuation">Vehicle Valuation</TabsTrigger>
+          <TabsTrigger value="hpi">HPI Check</TabsTrigger>
         </TabsList>
 
         {/* OVERVIEW */}
@@ -293,17 +294,35 @@ export default function VehicleCheckDetail() {
           </div>
         </TabsContent>
 
-        {/* COMING SOON */}
-        <TabsContent value="coming">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="p-5 rounded-xl border border-border/50 bg-card/30 opacity-50">
-              <h3 className="text-sm font-semibold mb-2 flex items-center gap-2"><Lock className="h-4 w-4" /> HPI Check</h3>
-              <p className="text-xs text-muted-foreground">Coming Soon</p>
+        {/* VEHICLE VALUATION */}
+        <TabsContent value="valuation">
+          <div className="p-8 rounded-xl border border-border/50 bg-card/50 flex flex-col items-center justify-center text-center space-y-4">
+            <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+              <Lock className="h-8 w-8 text-primary/50" />
             </div>
-            <div className="p-5 rounded-xl border border-border/50 bg-card/30 opacity-50">
-              <h3 className="text-sm font-semibold mb-2 flex items-center gap-2"><Lock className="h-4 w-4" /> Valuation</h3>
-              <p className="text-xs text-muted-foreground">Coming Soon</p>
+            <div>
+              <h3 className="text-lg font-semibold">Vehicle Valuation</h3>
+              <Badge variant="outline" className="mt-2 border-amber-500/50 text-amber-400">Coming Soon</Badge>
             </div>
+            <p className="text-sm text-muted-foreground max-w-md">
+              Get instant trade, retail, and private valuations powered by live market data. This feature is currently in development.
+            </p>
+          </div>
+        </TabsContent>
+
+        {/* HPI CHECK */}
+        <TabsContent value="hpi">
+          <div className="p-8 rounded-xl border border-border/50 bg-card/50 flex flex-col items-center justify-center text-center space-y-4">
+            <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+              <Lock className="h-8 w-8 text-primary/50" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold">HPI Check</h3>
+              <Badge variant="outline" className="mt-2 border-amber-500/50 text-amber-400">Coming Soon</Badge>
+            </div>
+            <p className="text-sm text-muted-foreground max-w-md">
+              Check for outstanding finance, write-offs, stolen markers, and plate changes. This feature is currently in development.
+            </p>
           </div>
         </TabsContent>
       </Tabs>
