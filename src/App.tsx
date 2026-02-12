@@ -30,8 +30,9 @@ import VehicleChecks from "./pages/app/checks/VehicleChecks";
 import LeadList from "./pages/app/leads/LeadList";
 import LeadCreate from "./pages/app/leads/LeadCreate";
 import LeadProfile from "./pages/app/leads/LeadProfile";
-import InvoiceList from "./pages/app/invoices/InvoiceList";
-import InvoiceCreate from "./pages/app/invoices/InvoiceCreate";
+import InvoicesModule from "./pages/app/invoices/InvoicesModule";
+import InvoiceCreateModule from "./pages/app/invoices/InvoiceCreateModule";
+import InvoiceDetailModule from "./pages/app/invoices/InvoiceDetailModule";
 import WarrantyList from "./pages/app/warranties/WarrantyList";
 import WarrantyCreate from "./pages/app/warranties/WarrantyCreate";
 import AftersalesModule from "./pages/app/aftersales/AftersalesModule";
@@ -93,8 +94,9 @@ const App = () => (
               <Route path="leads/:id" element={<LeadProfile />} />
 
               {/* Invoices */}
-              <Route path="invoices" element={<InvoiceList />} />
-              <Route path="invoices/new" element={<InvoiceCreate />} />
+              <Route path="invoices" element={<InvoicesModule />} />
+              <Route path="invoices/new" element={<InvoiceCreateModule />} />
+              <Route path="invoices/:id" element={<InvoiceDetailModule />} />
 
               {/* Warranties */}
               <Route path="warranties" element={<WarrantyList />} />

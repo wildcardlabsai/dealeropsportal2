@@ -730,6 +730,62 @@ export type Database = {
           },
         ]
       }
+      finance_companies: {
+        Row: {
+          address_line1: string | null
+          address_line2: string | null
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string
+          dealer_id: string
+          id: string
+          legal_name: string
+          notes: string | null
+          postcode: string | null
+          town: string | null
+          trading_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          address_line1?: string | null
+          address_line2?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          dealer_id: string
+          id?: string
+          legal_name: string
+          notes?: string | null
+          postcode?: string | null
+          town?: string | null
+          trading_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address_line1?: string | null
+          address_line2?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          dealer_id?: string
+          id?: string
+          legal_name?: string
+          notes?: string | null
+          postcode?: string | null
+          town?: string | null
+          trading_name?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finance_companies_dealer_id_fkey"
+            columns: ["dealer_id"]
+            isOneToOne: false
+            referencedRelation: "dealers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoice_items: {
         Row: {
           created_at: string
@@ -739,6 +795,7 @@ export type Database = {
           quantity: number
           total: number
           unit_price: number
+          vat_rate: number
         }
         Insert: {
           created_at?: string
@@ -748,6 +805,7 @@ export type Database = {
           quantity?: number
           total?: number
           unit_price?: number
+          vat_rate?: number
         }
         Update: {
           created_at?: string
@@ -757,6 +815,7 @@ export type Database = {
           quantity?: number
           total?: number
           unit_price?: number
+          vat_rate?: number
         }
         Relationships: [
           {
@@ -768,57 +827,147 @@ export type Database = {
           },
         ]
       }
+      invoice_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          dealer_id: string
+          id: string
+          invoice_id: string
+          method: Database["public"]["Enums"]["payment_method_type"]
+          received_at: string | null
+          reference: string | null
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          dealer_id: string
+          id?: string
+          invoice_id: string
+          method?: Database["public"]["Enums"]["payment_method_type"]
+          received_at?: string | null
+          reference?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          dealer_id?: string
+          id?: string
+          invoice_id?: string
+          method?: Database["public"]["Enums"]["payment_method_type"]
+          received_at?: string | null
+          reference?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_payments_dealer_id_fkey"
+            columns: ["dealer_id"]
+            isOneToOne: false
+            referencedRelation: "dealers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoices: {
         Row: {
+          balance_due: number | null
+          cancelled_at: string | null
           created_at: string
           created_by_user_id: string | null
           customer_id: string | null
           dealer_id: string
+          delivery_fee: number | null
+          deposit_amount: number | null
           due_date: string | null
+          finance_company_id: string | null
           id: string
           invoice_number: string
+          issued_at: string | null
           notes: string | null
           paid_at: string | null
+          pdf_url: string | null
+          sale_date: string | null
+          sale_type: Database["public"]["Enums"]["sale_type"]
           status: Database["public"]["Enums"]["invoice_status"]
           subtotal: number
           total: number
           updated_at: string
           vat_amount: number
+          vehicle_first_reg_override: string | null
           vehicle_id: string | null
+          vehicle_make_model_override: string | null
+          vehicle_mileage_override: number | null
+          vehicle_vin_override: string | null
+          vehicle_vrm_override: string | null
         }
         Insert: {
+          balance_due?: number | null
+          cancelled_at?: string | null
           created_at?: string
           created_by_user_id?: string | null
           customer_id?: string | null
           dealer_id: string
+          delivery_fee?: number | null
+          deposit_amount?: number | null
           due_date?: string | null
+          finance_company_id?: string | null
           id?: string
           invoice_number: string
+          issued_at?: string | null
           notes?: string | null
           paid_at?: string | null
+          pdf_url?: string | null
+          sale_date?: string | null
+          sale_type?: Database["public"]["Enums"]["sale_type"]
           status?: Database["public"]["Enums"]["invoice_status"]
           subtotal?: number
           total?: number
           updated_at?: string
           vat_amount?: number
+          vehicle_first_reg_override?: string | null
           vehicle_id?: string | null
+          vehicle_make_model_override?: string | null
+          vehicle_mileage_override?: number | null
+          vehicle_vin_override?: string | null
+          vehicle_vrm_override?: string | null
         }
         Update: {
+          balance_due?: number | null
+          cancelled_at?: string | null
           created_at?: string
           created_by_user_id?: string | null
           customer_id?: string | null
           dealer_id?: string
+          delivery_fee?: number | null
+          deposit_amount?: number | null
           due_date?: string | null
+          finance_company_id?: string | null
           id?: string
           invoice_number?: string
+          issued_at?: string | null
           notes?: string | null
           paid_at?: string | null
+          pdf_url?: string | null
+          sale_date?: string | null
+          sale_type?: Database["public"]["Enums"]["sale_type"]
           status?: Database["public"]["Enums"]["invoice_status"]
           subtotal?: number
           total?: number
           updated_at?: string
           vat_amount?: number
+          vehicle_first_reg_override?: string | null
           vehicle_id?: string | null
+          vehicle_make_model_override?: string | null
+          vehicle_mileage_override?: number | null
+          vehicle_vin_override?: string | null
+          vehicle_vrm_override?: string | null
         }
         Relationships: [
           {
@@ -833,6 +982,13 @@ export type Database = {
             columns: ["dealer_id"]
             isOneToOne: false
             referencedRelation: "dealers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_finance_company_id_fkey"
+            columns: ["finance_company_id"]
+            isOneToOne: false
+            referencedRelation: "finance_companies"
             referencedColumns: ["id"]
           },
           {
@@ -916,6 +1072,63 @@ export type Database = {
             columns: ["vehicle_id"]
             isOneToOne: false
             referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      part_exchanges: {
+        Row: {
+          created_at: string
+          dealer_id: string
+          id: string
+          invoice_id: string
+          px_allowance: number
+          px_make_model: string | null
+          px_mileage: number | null
+          px_notes: string | null
+          px_settlement: number | null
+          px_vin: string | null
+          px_vrm: string | null
+        }
+        Insert: {
+          created_at?: string
+          dealer_id: string
+          id?: string
+          invoice_id: string
+          px_allowance?: number
+          px_make_model?: string | null
+          px_mileage?: number | null
+          px_notes?: string | null
+          px_settlement?: number | null
+          px_vin?: string | null
+          px_vrm?: string | null
+        }
+        Update: {
+          created_at?: string
+          dealer_id?: string
+          id?: string
+          invoice_id?: string
+          px_allowance?: number
+          px_make_model?: string | null
+          px_mileage?: number | null
+          px_notes?: string | null
+          px_settlement?: number | null
+          px_vin?: string | null
+          px_vrm?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "part_exchanges_dealer_id_fkey"
+            columns: ["dealer_id"]
+            isOneToOne: false
+            referencedRelation: "dealers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "part_exchanges_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: true
+            referencedRelation: "invoices"
             referencedColumns: ["id"]
           },
         ]
@@ -1355,6 +1568,8 @@ export type Database = {
         | "negotiating"
         | "won"
         | "lost"
+      payment_method_type: "bacs" | "card" | "cash" | "finance" | "other"
+      sale_type: "cash" | "finance" | "part_finance"
       task_priority: "low" | "medium" | "high" | "urgent"
       task_status: "todo" | "in_progress" | "done" | "cancelled"
       transmission_type: "manual" | "automatic" | "other"
@@ -1562,6 +1777,8 @@ export const Constants = {
         "won",
         "lost",
       ],
+      payment_method_type: ["bacs", "card", "cash", "finance", "other"],
+      sale_type: ["cash", "finance", "part_finance"],
       task_priority: ["low", "medium", "high", "urgent"],
       task_status: ["todo", "in_progress", "done", "cancelled"],
       transmission_type: ["manual", "automatic", "other"],
