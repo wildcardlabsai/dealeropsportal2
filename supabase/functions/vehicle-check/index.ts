@@ -43,12 +43,27 @@ function buildSummary(dvla: any, dvsa: any, gvd: any) {
     summary.registrationNumber = dvla.registrationNumber || null;
   }
 
-  if (dvsa && Array.isArray(dvsa) && dvsa.length > 0) {
-    const latest = dvsa[0];
-    summary.latestMotDate = latest.completedDate || null;
-    summary.latestMotResult = latest.testResult || null;
-    summary.latestMotMileage = latest.odometerValue ? Number(latest.odometerValue) : null;
-    summary.motExpiryDate = latest.expiryDate || summary.motExpiryDate || null;
+  if (dvsa) {
+    // New API format: { vehicle: {..., model, ...}, motTests: [...] }
+    const motTests = dvsa.motTests || (Array.isArray(dvsa) ? dvsa : null);
+    const dvsaVehicle = dvsa.vehicle || null;
+
+    if (dvsaVehicle) {
+      // The new DVSA API provides model info that DVLA doesn't
+      if (dvsaVehicle.model) summary.model = dvsaVehicle.model;
+      if (dvsaVehicle.make && !summary.make) summary.make = dvsaVehicle.make;
+      if (dvsaVehicle.primaryColour) summary.colour = summary.colour || dvsaVehicle.primaryColour;
+      if (dvsaVehicle.registrationDate) summary.dvsaRegistrationDate = dvsaVehicle.registrationDate;
+      if (dvsaVehicle.manufactureDate) summary.manufactureDate = dvsaVehicle.manufactureDate;
+    }
+
+    if (motTests && Array.isArray(motTests) && motTests.length > 0) {
+      const latest = motTests[0];
+      summary.latestMotDate = latest.completedDate || null;
+      summary.latestMotResult = latest.testResult || null;
+      summary.latestMotMileage = latest.odometerValue ? Number(latest.odometerValue) : null;
+      summary.motExpiryDate = latest.expiryDate || summary.motExpiryDate || null;
+    }
   }
 
   if (gvd) {
@@ -139,24 +154,27 @@ async function callDVSA(vrm: string): Promise<{ data: any; status: string }> {
 
   // Get OAuth2 access token
   const accessToken = await getDvsaAccessToken();
+  if (!accessToken) {
+    console.error("DVSA: Could not obtain access token");
+    return { status: "failed", data: null };
+  }
 
   try {
-    const headers: Record<string, string> = {
-      Accept: "application/json+v6",
-      "x-api-key": apiKey,
-    };
-    if (accessToken) {
-      headers["Authorization"] = `Bearer ${accessToken}`;
-    }
-
     const res = await fetchWithRetry(
-      `https://beta.check-mot.service.gov.uk/trade/vehicles/mot-tests?registration=${vrm}`,
-      { headers },
+      `https://history.mot.api.gov.uk/v1/trade/vehicles/registration/${vrm}`,
+      {
+        headers: {
+          "Accept": "application/json",
+          "Authorization": `Bearer ${accessToken}`,
+          "X-API-Key": apiKey,
+        },
+      },
     );
     if (res.ok) {
       const json = await res.json();
-      const tests = Array.isArray(json) && json.length > 0 ? (json[0].motTests || json[0]) : null;
-      return { status: "success", data: tests };
+      // New API returns { vehicle: {...}, motTests: [...] }
+      const tests = json.motTests || null;
+      return { status: "success", data: { vehicle: json.vehicle || json, motTests: tests } };
     }
     console.error("DVSA error:", res.status, await res.text().catch(() => ""));
     return { status: "failed", data: null };
