@@ -58,7 +58,7 @@ export function DemoRequestDialog({ open, onOpenChange }: DemoRequestDialogProps
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[900px] p-0 overflow-hidden border-border/50 bg-background gap-0">
+      <DialogContent className="sm:max-w-[900px] p-0 overflow-hidden border-border/50 bg-background gap-0 max-h-[90vh] overflow-y-auto">
         <DialogTitle className="sr-only">Request a Demo</DialogTitle>
         <div className="grid grid-cols-1 md:grid-cols-5">
           {/* Left panel */}
