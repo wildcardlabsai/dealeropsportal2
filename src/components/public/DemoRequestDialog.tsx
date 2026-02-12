@@ -24,17 +24,28 @@ export function DemoRequestDialog({ open, onOpenChange }: DemoRequestDialogProps
     const data = new FormData(form);
 
     try {
+      const fullName = data.get("fullName") as string;
+      const email = data.get("email") as string;
+      const dealership = data.get("dealership") as string;
+      const mobile = data.get("mobile") as string;
+
       const { error } = await supabase.from("contact_leads").insert({
-        first_name: data.get("fullName") as string,
+        first_name: fullName,
         last_name: "",
-        email: data.get("email") as string,
-        phone: data.get("mobile") as string,
-        dealership_name: data.get("dealership") as string,
+        email,
+        phone: mobile,
+        dealership_name: dealership,
         message: `Demo request - Stock size: ${stockSize}`,
       });
 
       if (error) throw error;
-      toast.success("Demo request sent! We'll be in touch shortly.");
+
+      // Send confirmation email (fire and forget)
+      supabase.functions.invoke("send-demo-confirmation", {
+        body: { name: fullName, email, dealership },
+      });
+
+      toast.success("Demo request sent! Check your email for confirmation.");
       form.reset();
       setStockSize("");
       onOpenChange(false);
