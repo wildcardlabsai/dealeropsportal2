@@ -136,49 +136,6 @@ export default function Login() {
           </div>
         </form>
 
-        {/* Dev quick-login */}
-        <div className="mt-4 p-3 rounded-lg border border-dashed border-border/60 bg-muted/30">
-          <p className="text-[10px] text-muted-foreground text-center mb-2 font-medium uppercase tracking-wider">Dev Quick Login</p>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1 text-xs"
-              disabled={loading}
-              onClick={async () => {
-                setLoading(true);
-                const { error } = await supabase.auth.signInWithPassword({
-                  email: "admin@dealerops.dev",
-                  password: "admin123",
-                });
-                if (error) toast.error(error.message);
-                else navigate("/app");
-                setLoading(false);
-              }}
-            >
-              Admin Login
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1 text-xs"
-              disabled={loading}
-              onClick={async () => {
-                setLoading(true);
-                const { error } = await supabase.auth.signInWithPassword({
-                  email: "user@dealerops.dev",
-                  password: "user1234",
-                });
-                if (error) toast.error(error.message);
-                else navigate("/app");
-                setLoading(false);
-              }}
-            >
-              User Login
-            </Button>
-          </div>
-        </div>
-
         <div className="text-center mt-4 space-y-1">
           <p className="text-[10px] text-muted-foreground">
             No account? DealerOps is invitation-only.{" "}
