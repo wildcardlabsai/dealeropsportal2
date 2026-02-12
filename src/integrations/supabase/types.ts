@@ -731,6 +731,281 @@ export type Database = {
           },
         ]
       }
+      cra_case_activities: {
+        Row: {
+          action_type: string
+          after_state: Json | null
+          before_state: Json | null
+          cra_case_id: string
+          created_at: string
+          created_by_user_id: string
+          dealer_id: string
+          id: string
+          message: string | null
+        }
+        Insert: {
+          action_type: string
+          after_state?: Json | null
+          before_state?: Json | null
+          cra_case_id: string
+          created_at?: string
+          created_by_user_id: string
+          dealer_id: string
+          id?: string
+          message?: string | null
+        }
+        Update: {
+          action_type?: string
+          after_state?: Json | null
+          before_state?: Json | null
+          cra_case_id?: string
+          created_at?: string
+          created_by_user_id?: string
+          dealer_id?: string
+          id?: string
+          message?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cra_case_activities_cra_case_id_fkey"
+            columns: ["cra_case_id"]
+            isOneToOne: false
+            referencedRelation: "cra_cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cra_case_activities_dealer_id_fkey"
+            columns: ["dealer_id"]
+            isOneToOne: false
+            referencedRelation: "dealers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cra_case_documents: {
+        Row: {
+          cra_case_id: string
+          created_at: string
+          dealer_id: string
+          document_type: string
+          file_name: string
+          file_path: string
+          file_size: number | null
+          id: string
+          mime_type: string | null
+          uploaded_by_user_id: string
+        }
+        Insert: {
+          cra_case_id: string
+          created_at?: string
+          dealer_id: string
+          document_type?: string
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          uploaded_by_user_id: string
+        }
+        Update: {
+          cra_case_id?: string
+          created_at?: string
+          dealer_id?: string
+          document_type?: string
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          uploaded_by_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cra_case_documents_cra_case_id_fkey"
+            columns: ["cra_case_id"]
+            isOneToOne: false
+            referencedRelation: "cra_cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cra_case_documents_dealer_id_fkey"
+            columns: ["dealer_id"]
+            isOneToOne: false
+            referencedRelation: "dealers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cra_cases: {
+        Row: {
+          aftersales_case_id: string | null
+          assigned_to_user_id: string | null
+          case_number: string
+          case_status: Database["public"]["Enums"]["cra_case_status"]
+          created_at: string
+          created_by_user_id: string
+          customer_id: string | null
+          customer_response_deescalation: string | null
+          customer_response_firm: string | null
+          customer_response_standard: string | null
+          customer_usage: Database["public"]["Enums"]["cra_customer_usage"]
+          days_since_sale: number | null
+          dealer_id: string
+          diagnostic_report_present: boolean
+          evidence_checklist: Json | null
+          fault_category: Database["public"]["Enums"]["cra_fault_category"]
+          fault_description: string
+          handover_acknowledgement_signed: boolean
+          id: string
+          inputs_snapshot: Json | null
+          internal_assessment_notes: string | null
+          issue_reported_date: string
+          mileage_at_issue: number | null
+          mileage_at_sale: number | null
+          outputs_snapshot: Json | null
+          pdi_present: boolean
+          pre_delivery_photos_present: boolean
+          recommended_next_steps: Json | null
+          resolution_summary: string | null
+          risk_rating: Database["public"]["Enums"]["cra_risk_rating"] | null
+          risk_reasons: Json | null
+          sale_date: string
+          sale_type: Database["public"]["Enums"]["cra_sale_type"]
+          service_history_present: boolean
+          time_window: Database["public"]["Enums"]["cra_time_window"] | null
+          updated_at: string
+          vehicle_drivable: boolean
+          vehicle_first_reg_date: string | null
+          vehicle_id: string | null
+          vehicle_make: string | null
+          vehicle_model: string | null
+          vehicle_registration: string | null
+          warning_lights_present: boolean
+          warranty_active: boolean
+        }
+        Insert: {
+          aftersales_case_id?: string | null
+          assigned_to_user_id?: string | null
+          case_number?: string
+          case_status?: Database["public"]["Enums"]["cra_case_status"]
+          created_at?: string
+          created_by_user_id: string
+          customer_id?: string | null
+          customer_response_deescalation?: string | null
+          customer_response_firm?: string | null
+          customer_response_standard?: string | null
+          customer_usage?: Database["public"]["Enums"]["cra_customer_usage"]
+          days_since_sale?: number | null
+          dealer_id: string
+          diagnostic_report_present?: boolean
+          evidence_checklist?: Json | null
+          fault_category: Database["public"]["Enums"]["cra_fault_category"]
+          fault_description: string
+          handover_acknowledgement_signed?: boolean
+          id?: string
+          inputs_snapshot?: Json | null
+          internal_assessment_notes?: string | null
+          issue_reported_date: string
+          mileage_at_issue?: number | null
+          mileage_at_sale?: number | null
+          outputs_snapshot?: Json | null
+          pdi_present?: boolean
+          pre_delivery_photos_present?: boolean
+          recommended_next_steps?: Json | null
+          resolution_summary?: string | null
+          risk_rating?: Database["public"]["Enums"]["cra_risk_rating"] | null
+          risk_reasons?: Json | null
+          sale_date: string
+          sale_type?: Database["public"]["Enums"]["cra_sale_type"]
+          service_history_present?: boolean
+          time_window?: Database["public"]["Enums"]["cra_time_window"] | null
+          updated_at?: string
+          vehicle_drivable?: boolean
+          vehicle_first_reg_date?: string | null
+          vehicle_id?: string | null
+          vehicle_make?: string | null
+          vehicle_model?: string | null
+          vehicle_registration?: string | null
+          warning_lights_present?: boolean
+          warranty_active?: boolean
+        }
+        Update: {
+          aftersales_case_id?: string | null
+          assigned_to_user_id?: string | null
+          case_number?: string
+          case_status?: Database["public"]["Enums"]["cra_case_status"]
+          created_at?: string
+          created_by_user_id?: string
+          customer_id?: string | null
+          customer_response_deescalation?: string | null
+          customer_response_firm?: string | null
+          customer_response_standard?: string | null
+          customer_usage?: Database["public"]["Enums"]["cra_customer_usage"]
+          days_since_sale?: number | null
+          dealer_id?: string
+          diagnostic_report_present?: boolean
+          evidence_checklist?: Json | null
+          fault_category?: Database["public"]["Enums"]["cra_fault_category"]
+          fault_description?: string
+          handover_acknowledgement_signed?: boolean
+          id?: string
+          inputs_snapshot?: Json | null
+          internal_assessment_notes?: string | null
+          issue_reported_date?: string
+          mileage_at_issue?: number | null
+          mileage_at_sale?: number | null
+          outputs_snapshot?: Json | null
+          pdi_present?: boolean
+          pre_delivery_photos_present?: boolean
+          recommended_next_steps?: Json | null
+          resolution_summary?: string | null
+          risk_rating?: Database["public"]["Enums"]["cra_risk_rating"] | null
+          risk_reasons?: Json | null
+          sale_date?: string
+          sale_type?: Database["public"]["Enums"]["cra_sale_type"]
+          service_history_present?: boolean
+          time_window?: Database["public"]["Enums"]["cra_time_window"] | null
+          updated_at?: string
+          vehicle_drivable?: boolean
+          vehicle_first_reg_date?: string | null
+          vehicle_id?: string | null
+          vehicle_make?: string | null
+          vehicle_model?: string | null
+          vehicle_registration?: string | null
+          warning_lights_present?: boolean
+          warranty_active?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cra_cases_aftersales_case_id_fkey"
+            columns: ["aftersales_case_id"]
+            isOneToOne: false
+            referencedRelation: "aftersales_cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cra_cases_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cra_cases_dealer_id_fkey"
+            columns: ["dealer_id"]
+            isOneToOne: false
+            referencedRelation: "dealers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cra_cases_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customers: {
         Row: {
           address_line1: string | null
@@ -2988,6 +3263,32 @@ export type Database = {
       check_run_status: "success" | "partial" | "failed"
       contact_method: "phone" | "email" | "whatsapp" | "post"
       courtesy_car_status: "available" | "on_loan" | "in_service" | "retired"
+      cra_case_status:
+        | "open"
+        | "awaiting_evidence"
+        | "awaiting_diagnostic"
+        | "under_review"
+        | "resolved"
+      cra_customer_usage: "normal" | "heavy" | "unknown"
+      cra_fault_category:
+        | "engine"
+        | "gearbox"
+        | "electrical"
+        | "brakes"
+        | "suspension"
+        | "steering"
+        | "cooling"
+        | "infotainment"
+        | "hvac"
+        | "body_cosmetic"
+        | "wear_and_tear"
+        | "other"
+      cra_risk_rating: "green" | "amber" | "red"
+      cra_sale_type: "on_premises" | "distance" | "hybrid"
+      cra_time_window:
+        | "within_30_days"
+        | "30_days_to_6_months"
+        | "over_6_months"
       cra_window: "within_30_days" | "day_31_to_6_months" | "over_6_months"
       dealer_status: "active" | "suspended" | "pending"
       fuel_type:
@@ -3201,6 +3502,35 @@ export const Constants = {
       check_run_status: ["success", "partial", "failed"],
       contact_method: ["phone", "email", "whatsapp", "post"],
       courtesy_car_status: ["available", "on_loan", "in_service", "retired"],
+      cra_case_status: [
+        "open",
+        "awaiting_evidence",
+        "awaiting_diagnostic",
+        "under_review",
+        "resolved",
+      ],
+      cra_customer_usage: ["normal", "heavy", "unknown"],
+      cra_fault_category: [
+        "engine",
+        "gearbox",
+        "electrical",
+        "brakes",
+        "suspension",
+        "steering",
+        "cooling",
+        "infotainment",
+        "hvac",
+        "body_cosmetic",
+        "wear_and_tear",
+        "other",
+      ],
+      cra_risk_rating: ["green", "amber", "red"],
+      cra_sale_type: ["on_premises", "distance", "hybrid"],
+      cra_time_window: [
+        "within_30_days",
+        "30_days_to_6_months",
+        "over_6_months",
+      ],
       cra_window: ["within_30_days", "day_31_to_6_months", "over_6_months"],
       dealer_status: ["active", "suspended", "pending"],
       fuel_type: [

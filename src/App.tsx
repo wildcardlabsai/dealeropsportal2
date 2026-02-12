@@ -58,6 +58,9 @@ import ReportsPage from "./pages/app/reports/ReportsPage";
 import HandoverList from "./pages/app/handovers/HandoverList";
 import HandoverCreate from "./pages/app/handovers/HandoverCreate";
 import HandoverDetail from "./pages/app/handovers/HandoverDetail";
+import CRAShieldList from "./pages/app/cra/CRAShieldList";
+import CRAShieldCreate from "./pages/app/cra/CRAShieldCreate";
+import CRAShieldDetail from "./pages/app/cra/CRAShieldDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -126,6 +129,11 @@ const App = () => (
               <Route path="handovers" element={<HandoverList />} />
               <Route path="handovers/new" element={<HandoverCreate />} />
               <Route path="handovers/:id" element={<HandoverDetail />} />
+
+              {/* CRA Shield */}
+              <Route path="cra" element={<CRAShieldList />} />
+              <Route path="cra/new" element={<CRAShieldCreate />} />
+              <Route path="cra/:id" element={<CRAShieldDetail />} />
 
               {/* Courtesy Cars */}
               <Route path="courtesy-cars" element={<CourtesyCarList />} />
