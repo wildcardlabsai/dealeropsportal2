@@ -34,8 +34,9 @@ import InvoiceList from "./pages/app/invoices/InvoiceList";
 import InvoiceCreate from "./pages/app/invoices/InvoiceCreate";
 import WarrantyList from "./pages/app/warranties/WarrantyList";
 import WarrantyCreate from "./pages/app/warranties/WarrantyCreate";
-import AftersaleList from "./pages/app/aftersales/AftersaleList";
-import AftersaleCreate from "./pages/app/aftersales/AftersaleCreate";
+import AftersalesModule from "./pages/app/aftersales/AftersalesModule";
+import AftersalesCaseCreate from "./pages/app/aftersales/AftersalesCaseCreate";
+import AftersalesCaseDetail from "./pages/app/aftersales/AftersalesCaseDetail";
 import CourtesyCarList from "./pages/app/courtesy/CourtesyCarList";
 import CourtesyCarCreate from "./pages/app/courtesy/CourtesyCarCreate";
 import TaskList from "./pages/app/tasks/TaskList";
@@ -100,8 +101,9 @@ const App = () => (
               <Route path="warranties/new" element={<WarrantyCreate />} />
 
               {/* Aftersales */}
-              <Route path="aftersales" element={<AftersaleList />} />
-              <Route path="aftersales/new" element={<AftersaleCreate />} />
+              <Route path="aftersales" element={<AftersalesModule />} />
+              <Route path="aftersales/new" element={<AftersalesCaseCreate />} />
+              <Route path="aftersales/:id" element={<AftersalesCaseDetail />} />
 
               {/* Courtesy Cars */}
               <Route path="courtesy-cars" element={<CourtesyCarList />} />

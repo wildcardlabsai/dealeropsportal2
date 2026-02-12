@@ -87,6 +87,246 @@ export type Database = {
           },
         ]
       }
+      aftersales_attachments: {
+        Row: {
+          case_id: string
+          created_at: string
+          dealer_id: string
+          file_name: string
+          file_path: string
+          file_size: number | null
+          id: string
+          mime_type: string | null
+          uploaded_by_user_id: string
+        }
+        Insert: {
+          case_id: string
+          created_at?: string
+          dealer_id: string
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          uploaded_by_user_id: string
+        }
+        Update: {
+          case_id?: string
+          created_at?: string
+          dealer_id?: string
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          uploaded_by_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "aftersales_attachments_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "aftersales_cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "aftersales_attachments_dealer_id_fkey"
+            columns: ["dealer_id"]
+            isOneToOne: false
+            referencedRelation: "dealers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      aftersales_cases: {
+        Row: {
+          assigned_to_user_id: string | null
+          case_number: string
+          closed_at: string | null
+          complaint_date: string
+          cost_estimate: number | null
+          cra_window: Database["public"]["Enums"]["cra_window"] | null
+          created_at: string
+          created_by_user_id: string
+          customer_comms_notes: string | null
+          customer_id: string | null
+          dealer_id: string
+          description: string
+          first_response_at: string | null
+          goodwill_amount: number | null
+          id: string
+          internal_notes: string | null
+          invoice_id: string | null
+          issue_category: string
+          issue_subcategory: string | null
+          last_contacted_at: string | null
+          next_action_at: string | null
+          outcome: Database["public"]["Enums"]["aftersales_outcome"] | null
+          priority: string
+          resolved_at: string | null
+          sale_date: string | null
+          sla_target_hours: number
+          status: Database["public"]["Enums"]["aftersales_case_status"]
+          summary: string
+          updated_at: string
+          vehicle_id: string | null
+          warranty_id: string | null
+        }
+        Insert: {
+          assigned_to_user_id?: string | null
+          case_number: string
+          closed_at?: string | null
+          complaint_date?: string
+          cost_estimate?: number | null
+          cra_window?: Database["public"]["Enums"]["cra_window"] | null
+          created_at?: string
+          created_by_user_id: string
+          customer_comms_notes?: string | null
+          customer_id?: string | null
+          dealer_id: string
+          description: string
+          first_response_at?: string | null
+          goodwill_amount?: number | null
+          id?: string
+          internal_notes?: string | null
+          invoice_id?: string | null
+          issue_category: string
+          issue_subcategory?: string | null
+          last_contacted_at?: string | null
+          next_action_at?: string | null
+          outcome?: Database["public"]["Enums"]["aftersales_outcome"] | null
+          priority?: string
+          resolved_at?: string | null
+          sale_date?: string | null
+          sla_target_hours?: number
+          status?: Database["public"]["Enums"]["aftersales_case_status"]
+          summary: string
+          updated_at?: string
+          vehicle_id?: string | null
+          warranty_id?: string | null
+        }
+        Update: {
+          assigned_to_user_id?: string | null
+          case_number?: string
+          closed_at?: string | null
+          complaint_date?: string
+          cost_estimate?: number | null
+          cra_window?: Database["public"]["Enums"]["cra_window"] | null
+          created_at?: string
+          created_by_user_id?: string
+          customer_comms_notes?: string | null
+          customer_id?: string | null
+          dealer_id?: string
+          description?: string
+          first_response_at?: string | null
+          goodwill_amount?: number | null
+          id?: string
+          internal_notes?: string | null
+          invoice_id?: string | null
+          issue_category?: string
+          issue_subcategory?: string | null
+          last_contacted_at?: string | null
+          next_action_at?: string | null
+          outcome?: Database["public"]["Enums"]["aftersales_outcome"] | null
+          priority?: string
+          resolved_at?: string | null
+          sale_date?: string | null
+          sla_target_hours?: number
+          status?: Database["public"]["Enums"]["aftersales_case_status"]
+          summary?: string
+          updated_at?: string
+          vehicle_id?: string | null
+          warranty_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "aftersales_cases_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "aftersales_cases_dealer_id_fkey"
+            columns: ["dealer_id"]
+            isOneToOne: false
+            referencedRelation: "dealers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "aftersales_cases_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "aftersales_cases_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "aftersales_cases_warranty_id_fkey"
+            columns: ["warranty_id"]
+            isOneToOne: false
+            referencedRelation: "warranties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      aftersales_updates: {
+        Row: {
+          case_id: string
+          created_at: string
+          created_by_user_id: string
+          dealer_id: string
+          id: string
+          message: string
+          new_status: string | null
+          old_status: string | null
+          update_type: Database["public"]["Enums"]["aftersales_update_type"]
+        }
+        Insert: {
+          case_id: string
+          created_at?: string
+          created_by_user_id: string
+          dealer_id: string
+          id?: string
+          message: string
+          new_status?: string | null
+          old_status?: string | null
+          update_type?: Database["public"]["Enums"]["aftersales_update_type"]
+        }
+        Update: {
+          case_id?: string
+          created_at?: string
+          created_by_user_id?: string
+          dealer_id?: string
+          id?: string
+          message?: string
+          new_status?: string | null
+          old_status?: string | null
+          update_type?: Database["public"]["Enums"]["aftersales_update_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "aftersales_updates_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "aftersales_cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "aftersales_updates_dealer_id_fkey"
+            columns: ["dealer_id"]
+            isOneToOne: false
+            referencedRelation: "dealers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_logs: {
         Row: {
           action_type: string
@@ -1060,9 +1300,36 @@ export type Database = {
         | "resolved"
         | "closed"
       aftersale_type: "complaint" | "repair" | "recall" | "goodwill" | "other"
+      aftersales_case_status:
+        | "new"
+        | "investigating"
+        | "awaiting_customer"
+        | "awaiting_garage"
+        | "approved_repair"
+        | "in_repair"
+        | "resolved"
+        | "rejected"
+        | "closed"
+      aftersales_outcome:
+        | "repair"
+        | "refund"
+        | "reject"
+        | "goodwill"
+        | "partial_refund"
+        | "diagnostic_only"
+        | "other"
+      aftersales_update_type:
+        | "note"
+        | "status_change"
+        | "assignment"
+        | "customer_contact"
+        | "garage_update"
+        | "document_added"
+        | "cost_update"
       app_role: "super_admin" | "dealer_admin" | "dealer_user"
       contact_method: "phone" | "email" | "whatsapp" | "post"
       courtesy_car_status: "available" | "on_loan" | "in_service" | "retired"
+      cra_window: "within_30_days" | "day_31_to_6_months" | "over_6_months"
       dealer_status: "active" | "suspended" | "pending"
       fuel_type:
         | "petrol"
@@ -1234,9 +1501,39 @@ export const Constants = {
         "closed",
       ],
       aftersale_type: ["complaint", "repair", "recall", "goodwill", "other"],
+      aftersales_case_status: [
+        "new",
+        "investigating",
+        "awaiting_customer",
+        "awaiting_garage",
+        "approved_repair",
+        "in_repair",
+        "resolved",
+        "rejected",
+        "closed",
+      ],
+      aftersales_outcome: [
+        "repair",
+        "refund",
+        "reject",
+        "goodwill",
+        "partial_refund",
+        "diagnostic_only",
+        "other",
+      ],
+      aftersales_update_type: [
+        "note",
+        "status_change",
+        "assignment",
+        "customer_contact",
+        "garage_update",
+        "document_added",
+        "cost_update",
+      ],
       app_role: ["super_admin", "dealer_admin", "dealer_user"],
       contact_method: ["phone", "email", "whatsapp", "post"],
       courtesy_car_status: ["available", "on_loan", "in_service", "retired"],
+      cra_window: ["within_30_days", "day_31_to_6_months", "over_6_months"],
       dealer_status: ["active", "suspended", "pending"],
       fuel_type: [
         "petrol",
