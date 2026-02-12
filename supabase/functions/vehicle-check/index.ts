@@ -95,9 +95,37 @@ async function callDVLA(vrm: string): Promise<{ data: any; status: string }> {
   }
 }
 
+async function getDvsaAccessToken(): Promise<string | null> {
+  const clientId = Deno.env.get("DVSA_CLIENT_ID");
+  const clientSecret = Deno.env.get("DVSA_CLIENT_SECRET");
+  const tokenUrl = Deno.env.get("DVSA_TOKEN_URL");
+  const scope = Deno.env.get("DVSA_SCOPE_URL");
+  if (!clientId || !clientSecret || !tokenUrl || !scope) return null;
+
+  const params = new URLSearchParams({
+    grant_type: "client_credentials",
+    client_id: clientId,
+    client_secret: clientSecret,
+    scope: scope,
+  });
+
+  const res = await fetch(tokenUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: params.toString(),
+  });
+
+  if (!res.ok) {
+    console.error("DVSA token error:", res.status, await res.text());
+    return null;
+  }
+  const json = await res.json();
+  return json.access_token || null;
+}
+
 async function callDVSA(vrm: string): Promise<{ data: any; status: string }> {
-  const key = Deno.env.get("DVSA_API_KEY");
-  if (!key) {
+  const apiKey = Deno.env.get("DVSA_API_KEY");
+  if (!apiKey) {
     console.warn("DVSA_API_KEY not set – returning mock");
     return {
       status: "success",
@@ -108,17 +136,29 @@ async function callDVSA(vrm: string): Promise<{ data: any; status: string }> {
       ],
     };
   }
+
+  // Get OAuth2 access token
+  const accessToken = await getDvsaAccessToken();
+
   try {
+    const headers: Record<string, string> = {
+      Accept: "application/json+v6",
+      "x-api-key": apiKey,
+    };
+    if (accessToken) {
+      headers["Authorization"] = `Bearer ${accessToken}`;
+    }
+
     const res = await fetchWithRetry(
       `https://beta.check-mot.service.gov.uk/trade/vehicles/mot-tests?registration=${vrm}`,
-      { headers: { Accept: "application/json+v6", "x-api-key": key } },
+      { headers },
     );
     if (res.ok) {
       const json = await res.json();
       const tests = Array.isArray(json) && json.length > 0 ? (json[0].motTests || json[0]) : null;
       return { status: "success", data: tests };
     }
-    console.error("DVSA error:", res.status);
+    console.error("DVSA error:", res.status, await res.text().catch(() => ""));
     return { status: "failed", data: null };
   } catch (e) {
     console.error("DVSA fetch failed:", e);
