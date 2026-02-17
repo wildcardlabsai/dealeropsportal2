@@ -8,6 +8,7 @@ import {
   Lock, Headphones, Globe, Zap, ChevronRight,
   ShieldCheck, Award, TrendingUp
 } from "lucide-react";
+import dashboardPreview from "@/assets/dashboard-preview.png";
 
 /* ─── data ─── */
 
@@ -36,9 +37,9 @@ const steps = [
 ];
 
 const testimonials = [
-  { name: "James Hartley", role: "Director", dealership: "Hartley Motors, Leeds", quote: "DealerOps has completely transformed how we manage aftersales. What used to take hours now takes minutes." },
-  { name: "Sarah Mitchell", role: "Operations Manager", dealership: "Mitchell Cars, Bristol", quote: "The compliance centre alone is worth it. We passed our FCA audit with zero findings thanks to the audit trail." },
-  { name: "David Chen", role: "Owner", dealership: "Premier Autos, Manchester", quote: "We went from spreadsheets to DealerOps in a week. Best decision we've made for the business." },
+  { name: "James Hartley", role: "Director", dealership: "Hartley Motors, Leeds", quote: "DealerOps has completely transformed how we manage aftersales. What used to take hours now takes minutes.", initials: "JH" },
+  { name: "Sarah Mitchell", role: "Operations Manager", dealership: "Mitchell Cars, Bristol", quote: "The compliance centre alone is worth it. We passed our FCA audit with zero findings thanks to the audit trail.", initials: "SM" },
+  { name: "David Chen", role: "Owner", dealership: "Premier Autos, Manchester", quote: "We went from spreadsheets to DealerOps in a week. Best decision we've made for the business.", initials: "DC" },
 ];
 
 const trustBadges = [
@@ -98,7 +99,7 @@ export default function Index() {
   return (
     <div>
       {/* ═══ Hero ═══ */}
-      <section className="relative overflow-hidden py-28 md:py-40">
+      <section className="relative overflow-hidden py-28 md:py-36">
         {/* background effects */}
         <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent" />
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full bg-primary/5 blur-[160px]" />
@@ -127,7 +128,7 @@ export default function Index() {
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link to="/contact">
+              <Link to="/login?mode=signup">
                 <Button size="lg" className="glow text-base px-8 h-12">
                   Start Free Trial
                   <ArrowRight className="ml-2 h-4 w-4" />
@@ -141,6 +142,24 @@ export default function Index() {
             </div>
 
             <p className="text-xs text-muted-foreground mt-4">No credit card required · 14-day free trial · Cancel anytime</p>
+          </motion.div>
+
+          {/* Dashboard Screenshot */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+            className="mt-16 max-w-5xl mx-auto"
+          >
+            <div className="relative rounded-xl overflow-hidden border border-border/50 shadow-2xl shadow-primary/5">
+              <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent z-10 pointer-events-none" />
+              <img
+                src={dashboardPreview}
+                alt="DealerOps dashboard showing vehicle management, KPIs, and stock overview"
+                className="w-full h-auto"
+                loading="eager"
+              />
+            </div>
           </motion.div>
         </div>
       </section>
@@ -330,9 +349,14 @@ export default function Index() {
                   ))}
                 </div>
                 <p className="text-sm text-foreground leading-relaxed mb-5 italic">"{t.quote}"</p>
-                <div>
-                  <p className="text-sm font-semibold text-foreground">{t.name}</p>
-                  <p className="text-xs text-muted-foreground">{t.role}, {t.dealership}</p>
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold text-primary shrink-0">
+                    {t.initials}
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">{t.name}</p>
+                    <p className="text-xs text-muted-foreground">{t.role}, {t.dealership}</p>
+                  </div>
                 </div>
               </motion.div>
             ))}
@@ -346,7 +370,7 @@ export default function Index() {
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Simple, transparent pricing</h2>
             <p className="text-muted-foreground max-w-lg mx-auto mb-8">
-              Plans from <span className="text-foreground font-semibold">£79/month</span>. No setup fees, no hidden costs, no long-term contracts.
+              Plans from <span className="text-foreground font-semibold">£99/month</span>. No setup fees, no hidden costs, no long-term contracts.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link to="/pricing">
@@ -375,7 +399,7 @@ export default function Index() {
                 Join hundreds of UK dealers who've already made the switch. Start your free 14-day trial today.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Link to="/contact">
+                <Link to="/login?mode=signup">
                   <Button size="lg" className="glow h-12 px-8 text-base">
                     Start Free Trial
                     <ArrowRight className="ml-2 h-4 w-4" />
