@@ -1,4 +1,5 @@
 import { useState, useRef, useMemo } from "react";
+import DOMPurify from "dompurify";
 import { motion } from "framer-motion";
 import { Upload, FolderOpen, Trash2, Download, FileText, Image, File, Copy, Eye, EyeOff, Pencil, Plus, Search, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -78,7 +79,7 @@ export default function DocumentList() {
   const handlePrintGenerated = async (pdfUrl: string) => {
     const { data, error } = await supabase.storage.from("generated-documents").download(pdfUrl);
     if (error) { toast.error("Failed to load document"); return; }
-    const text = await data.text();
+    const text = DOMPurify.sanitize(await data.text());
     const win = window.open("", "_blank");
     if (win) {
       win.document.write(text);
@@ -320,7 +321,7 @@ export default function DocumentList() {
           <DialogHeader>
             <DialogTitle>{previewTemplate?.name}</DialogTitle>
           </DialogHeader>
-          <div className="border rounded-lg p-6 bg-white text-black" dangerouslySetInnerHTML={{ __html: previewTemplate?.template_html || "" }} />
+          <div className="border rounded-lg p-6 bg-white text-black" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(previewTemplate?.template_html || "") }} />
         </DialogContent>
       </Dialog>
 
