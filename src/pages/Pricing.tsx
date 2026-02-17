@@ -206,7 +206,7 @@ export default function Pricing() {
                   ))}
                 </ul>
 
-                <Link to="/contact">
+                <Link to={plan.cta === "Start Free Trial" ? "/login?mode=signup" : "/contact"}>
                   <Button
                     className={`w-full ${plan.highlighted ? "glow" : ""}`}
                     variant={plan.highlighted ? "default" : "outline"}

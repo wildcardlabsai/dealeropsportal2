@@ -1672,6 +1672,7 @@ export type Database = {
           status: Database["public"]["Enums"]["dealer_status"]
           timezone: string | null
           trading_name: string | null
+          trial_ends_at: string | null
           updated_at: string
           vat_number: string | null
           website: string | null
@@ -1700,6 +1701,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["dealer_status"]
           timezone?: string | null
           trading_name?: string | null
+          trial_ends_at?: string | null
           updated_at?: string
           vat_number?: string | null
           website?: string | null
@@ -1728,6 +1730,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["dealer_status"]
           timezone?: string | null
           trading_name?: string | null
+          trial_ends_at?: string | null
           updated_at?: string
           vat_number?: string | null
           website?: string | null
@@ -3934,7 +3937,7 @@ export type Database = {
         | "30_days_to_6_months"
         | "over_6_months"
       cra_window: "within_30_days" | "day_31_to_6_months" | "over_6_months"
-      dealer_status: "active" | "suspended" | "pending"
+      dealer_status: "active" | "suspended" | "pending" | "trial"
       dsr_status: "new" | "in_review" | "awaiting_id" | "completed" | "rejected"
       dsr_type:
         | "sar"
@@ -4224,7 +4227,7 @@ export const Constants = {
         "over_6_months",
       ],
       cra_window: ["within_30_days", "day_31_to_6_months", "over_6_months"],
-      dealer_status: ["active", "suspended", "pending"],
+      dealer_status: ["active", "suspended", "pending", "trial"],
       dsr_status: ["new", "in_review", "awaiting_id", "completed", "rejected"],
       dsr_type: [
         "sar",

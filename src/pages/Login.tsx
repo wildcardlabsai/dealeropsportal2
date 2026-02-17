@@ -1,19 +1,30 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, ArrowLeft } from "lucide-react";
+
+type Mode = "login" | "signup" | "reset";
 
 export default function Login() {
+  const [searchParams] = useSearchParams();
+  const initialMode = searchParams.get("mode") === "signup" ? "signup" : "login";
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [mode, setMode] = useState<"login" | "reset">("login");
+  const [mode, setMode] = useState<Mode>(initialMode);
+
+  // Signup fields
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [dealershipName, setDealershipName] = useState("");
+
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -27,6 +38,39 @@ export default function Login() {
     } else {
       toast.success("Welcome back!");
       navigate("/app");
+    }
+    setLoading(false);
+  };
+
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("self-signup", {
+        body: {
+          dealership_name: dealershipName,
+          first_name: firstName,
+          last_name: lastName,
+          email,
+          password,
+        },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      // Auto sign in after signup
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+      if (signInError) {
+        toast.success("Account created! Please sign in.");
+        setMode("login");
+      } else {
+        toast.success("Welcome to DealerOps! Your 14-day trial has started.");
+        navigate("/app");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Signup failed");
     }
     setLoading(false);
   };
@@ -47,6 +91,12 @@ export default function Login() {
     setLoading(false);
   };
 
+  const titles: Record<Mode, { title: string; subtitle: string }> = {
+    login: { title: "Dealer Login", subtitle: "Sign in to your DealerOps account" },
+    signup: { title: "Start Free Trial", subtitle: "14 days free · No credit card required" },
+    reset: { title: "Reset Password", subtitle: "Enter your email to receive a reset link" },
+  };
+
   return (
     <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center py-20 relative">
       <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent" />
@@ -62,20 +112,52 @@ export default function Login() {
               <span className="text-primary-foreground font-bold">D</span>
             </div>
           </Link>
-          <h1 className="text-2xl font-bold">
-            {mode === "login" ? "Dealer Login" : "Reset Password"}
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {mode === "login"
-              ? "Sign in to your DealerOps account"
-              : "Enter your email to receive a reset link"}
-          </p>
+          <h1 className="text-2xl font-bold">{titles[mode].title}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{titles[mode].subtitle}</p>
         </div>
 
         <form
-          onSubmit={mode === "login" ? handleLogin : handleReset}
+          onSubmit={mode === "login" ? handleLogin : mode === "signup" ? handleSignup : handleReset}
           className="space-y-4 p-6 rounded-xl border border-border/50 bg-card/50"
         >
+          {mode === "signup" && (
+            <>
+              <div>
+                <Label htmlFor="dealership" className="text-xs">Dealership Name</Label>
+                <Input
+                  id="dealership"
+                  value={dealershipName}
+                  onChange={(e) => setDealershipName(e.target.value)}
+                  required
+                  className="mt-1"
+                  placeholder="Your Motors Ltd"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label htmlFor="firstName" className="text-xs">First Name</Label>
+                  <Input
+                    id="firstName"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    required
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="lastName" className="text-xs">Last Name</Label>
+                  <Input
+                    id="lastName"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    required
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+            </>
+          )}
+
           <div>
             <Label htmlFor="email" className="text-xs">Email</Label>
             <Input
@@ -89,7 +171,7 @@ export default function Login() {
             />
           </div>
 
-          {mode === "login" && (
+          {(mode === "login" || mode === "signup") && (
             <div>
               <Label htmlFor="password" className="text-xs">Password</Label>
               <div className="relative mt-1">
@@ -99,6 +181,8 @@ export default function Login() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  minLength={8}
+                  placeholder={mode === "signup" ? "Min. 8 characters" : undefined}
                 />
                 <button
                   type="button"
@@ -112,11 +196,17 @@ export default function Login() {
           )}
 
           <Button type="submit" className="w-full glow" disabled={loading}>
-            {loading ? "Please wait..." : mode === "login" ? "Sign In" : "Send Reset Link"}
+            {loading
+              ? "Please wait..."
+              : mode === "login"
+              ? "Sign In"
+              : mode === "signup"
+              ? "Create Account & Start Trial"
+              : "Send Reset Link"}
           </Button>
 
-          <div className="text-center">
-            {mode === "login" ? (
+          {mode === "login" && (
+            <div className="text-center">
               <button
                 type="button"
                 onClick={() => setMode("reset")}
@@ -124,23 +214,44 @@ export default function Login() {
               >
                 Forgot password?
               </button>
-            ) : (
+            </div>
+          )}
+
+          {mode !== "login" && (
+            <div className="text-center">
               <button
                 type="button"
                 onClick={() => setMode("login")}
-                className="text-xs text-primary hover:underline"
+                className="text-xs text-primary hover:underline inline-flex items-center gap-1"
               >
-                Back to login
+                <ArrowLeft size={12} /> Back to login
               </button>
-            )}
-          </div>
+            </div>
+          )}
         </form>
 
         <div className="text-center mt-4 space-y-1">
-          <p className="text-[10px] text-muted-foreground">
-            No account? DealerOps is invitation-only.{" "}
-            <Link to="/contact" className="text-primary hover:underline">Request access</Link>
-          </p>
+          {mode === "login" ? (
+            <p className="text-[10px] text-muted-foreground">
+              No account?{" "}
+              <button
+                onClick={() => setMode("signup")}
+                className="text-primary hover:underline"
+              >
+                Start a free 14-day trial
+              </button>
+            </p>
+          ) : mode === "signup" ? (
+            <p className="text-[10px] text-muted-foreground">
+              Already have an account?{" "}
+              <button
+                onClick={() => setMode("login")}
+                className="text-primary hover:underline"
+              >
+                Sign in
+              </button>
+            </p>
+          ) : null}
           <p className="text-[10px]">
             <Link to="/" className="text-muted-foreground hover:text-primary transition-colors">What is DealerOps?</Link>
           </p>
