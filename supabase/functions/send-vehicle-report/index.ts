@@ -34,6 +34,32 @@ serve(async (req) => {
       throw new Error("Missing required fields: to, vrm, reportHtml");
     }
 
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(to) || to.length > 255) {
+      throw new Error("Invalid email address");
+    }
+
+    // Validate VRM length
+    if (typeof vrm !== "string" || vrm.length > 20) {
+      throw new Error("Invalid VRM");
+    }
+
+    // Sanitize HTML: strip script tags, event handlers, iframes, object/embed
+    let sanitizedHtml = reportHtml;
+    sanitizedHtml = sanitizedHtml.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "");
+    sanitizedHtml = sanitizedHtml.replace(/<iframe\b[^>]*>.*?<\/iframe>/gi, "");
+    sanitizedHtml = sanitizedHtml.replace(/<object\b[^>]*>.*?<\/object>/gi, "");
+    sanitizedHtml = sanitizedHtml.replace(/<embed\b[^>]*\/?>/gi, "");
+    sanitizedHtml = sanitizedHtml.replace(/<link\b[^>]*>/gi, "");
+    sanitizedHtml = sanitizedHtml.replace(/\bon\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]*)/gi, "");
+    sanitizedHtml = sanitizedHtml.replace(/javascript\s*:/gi, "");
+
+    // Limit HTML size (max 500KB)
+    if (sanitizedHtml.length > 512000) {
+      throw new Error("Report content too large");
+    }
+
     // Send via Resend
     const emailRes = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -45,7 +71,7 @@ serve(async (req) => {
         from: Deno.env.get("EMAIL_FROM") || "DealerOps <onboarding@resend.dev>",
         to: [to],
         subject: `Vehicle Check Report – ${vrm} | DealerOps`,
-        html: reportHtml,
+        html: sanitizedHtml,
       }),
     });
 
