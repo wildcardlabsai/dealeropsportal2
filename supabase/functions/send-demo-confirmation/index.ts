@@ -14,10 +14,48 @@ serve(async (req) => {
   try {
     const { name, email, dealership } = await req.json();
 
+    // Input validation
     if (!email || !name) {
       return new Response(JSON.stringify({ error: "Name and email required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Validate lengths
+    if (typeof name !== "string" || name.length > 200) {
+      return new Response(JSON.stringify({ error: "Invalid name" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (typeof email !== "string" || email.length > 255 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return new Response(JSON.stringify({ error: "Invalid email" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (dealership && (typeof dealership !== "string" || dealership.length > 200)) {
+      return new Response(JSON.stringify({ error: "Invalid dealership name" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Basic rate limiting: check if this email already requested a demo recently
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabase = (await import("https://esm.sh/@supabase/supabase-js@2")).createClient(
+      supabaseUrl,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const { count } = await supabase
+      .from("contact_leads")
+      .select("*", { count: "exact", head: true })
+      .eq("email", email)
+      .gte("created_at", oneHourAgo);
+
+    if (count && count >= 3) {
+      return new Response(JSON.stringify({ error: "Too many requests. Please try again later." }), {
+        status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 

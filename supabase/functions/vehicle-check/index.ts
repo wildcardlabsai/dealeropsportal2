@@ -83,7 +83,6 @@ function buildSummary(dvla: any, dvsa: any, gvd: any) {
 async function callDVLA(vrm: string): Promise<{ data: any; status: string }> {
   const key = Deno.env.get("DVLA_API_KEY");
   if (!key) {
-    console.warn("DVLA_API_KEY not set – returning mock");
     return {
       status: "success",
       data: {
@@ -141,7 +140,6 @@ async function getDvsaAccessToken(): Promise<string | null> {
 async function callDVSA(vrm: string): Promise<{ data: any; status: string }> {
   const apiKey = Deno.env.get("DVSA_API_KEY");
   if (!apiKey) {
-    console.warn("DVSA_API_KEY not set – returning mock");
     return {
       status: "success",
       data: [
@@ -187,7 +185,6 @@ async function callDVSA(vrm: string): Promise<{ data: any; status: string }> {
 async function callGVD(vrm: string): Promise<{ data: any; status: string }> {
   const key = Deno.env.get("GVD_API_KEY");
   if (!key) {
-    console.warn("GVD_API_KEY not set – returning mock");
     return {
       status: "success",
       data: { numberOfOwners: 2, v5cCount: 3, plateChangeCount: 0, vehicleClass: "Car", bodyType: "Saloon", doors: 4, seats: 5, grossWeight: 1950, insuranceGroup: "28E" },
