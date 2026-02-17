@@ -1,17 +1,20 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { CreditCard, CheckCircle2, Zap, ArrowUpCircle, Clock, Download } from "lucide-react";
+import { CheckCircle2, Zap, ArrowUpCircle, CreditCard, ExternalLink, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserDealerId } from "@/hooks/useCustomers";
 import { useAuth } from "@/contexts/AuthContext";
+import { useStripeSubscription, startCheckout, openCustomerPortal } from "@/hooks/useStripeSubscription";
+import { getTierByProductId, STRIPE_PLANS } from "@/lib/stripePlans";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { useSearchParams } from "react-router-dom";
 
 const statusColors: Record<string, string> = {
   pending: "bg-warning/10 text-warning border-warning/20",
@@ -27,6 +30,22 @@ export default function BillingPage() {
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [requestedPlanId, setRequestedPlanId] = useState("");
   const [requestNotes, setRequestNotes] = useState("");
+  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
+  const [portalLoading, setPortalLoading] = useState(false);
+  const [searchParams] = useSearchParams();
+
+  const { data: stripeStatus, refetch: refetchStripe } = useStripeSubscription();
+
+  // Handle checkout return
+  useEffect(() => {
+    const checkout = searchParams.get("checkout");
+    if (checkout === "success") {
+      toast.success("Checkout completed! Your subscription will be active shortly.");
+      refetchStripe();
+    } else if (checkout === "cancel") {
+      toast.info("Checkout was cancelled.");
+    }
+  }, [searchParams, refetchStripe]);
 
   const { data: dealer } = useQuery({
     queryKey: ["dealer-billing", dealerId],
@@ -114,8 +133,31 @@ export default function BillingPage() {
     onError: (err: any) => toast.error(err.message),
   });
 
+  const handleCheckout = async (priceId: string) => {
+    setCheckoutLoading(priceId);
+    try {
+      await startCheckout(priceId);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to start checkout");
+    } finally {
+      setCheckoutLoading(null);
+    }
+  };
+
+  const handlePortal = async () => {
+    setPortalLoading(true);
+    try {
+      await openCustomerPortal();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to open billing portal");
+    } finally {
+      setPortalLoading(false);
+    }
+  };
+
   const currentPlan = subscription?.plans as any;
   const features: string[] = currentPlan?.features_json || [];
+  const activeTier = stripeStatus?.product_id ? getTierByProductId(stripeStatus.product_id) : null;
 
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
@@ -124,7 +166,27 @@ export default function BillingPage() {
         <p className="text-sm text-muted-foreground">Manage your subscription and usage</p>
       </div>
 
-      <div className="max-w-3xl space-y-6">
+      <div className="max-w-4xl space-y-6">
+        {/* Stripe Subscription Status */}
+        {stripeStatus?.subscribed && (
+          <div className="p-4 rounded-xl border border-primary/30 bg-primary/5 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <CheckCircle2 className="h-5 w-5 text-primary" />
+              <div>
+                <p className="text-sm font-semibold">Active Stripe Subscription</p>
+                <p className="text-xs text-muted-foreground">
+                  {activeTier ? `${activeTier.charAt(0).toUpperCase() + activeTier.slice(1)} plan` : "Active"} 
+                  {stripeStatus.subscription_end && ` · Renews ${format(new Date(stripeStatus.subscription_end), "d MMM yyyy")}`}
+                </p>
+              </div>
+            </div>
+            <Button variant="outline" size="sm" onClick={handlePortal} disabled={portalLoading}>
+              {portalLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <CreditCard className="h-4 w-4 mr-2" />}
+              Manage Billing
+            </Button>
+          </div>
+        )}
+
         {/* Current Plan */}
         <div className="p-6 rounded-xl border border-border/50 bg-card/50">
           <div className="flex items-center justify-between mb-4">
@@ -148,6 +210,69 @@ export default function BillingPage() {
             )}
           </div>
         </div>
+
+        {/* Available Plans with Subscribe buttons */}
+        {plans && plans.length > 0 && (
+          <div className="p-6 rounded-xl border border-border/50 bg-card/50">
+            <h3 className="text-sm font-semibold mb-4">Available Plans</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {plans.map((plan: any) => {
+                const isCurrentDbPlan = subscription?.plan_id === plan.id;
+                const stripePrice = plan.stripe_price_id;
+                const isActiveStripe = stripeStatus?.price_id === stripePrice;
+                const planFeatures: string[] = plan.features_json || [];
+
+                return (
+                  <div
+                    key={plan.id}
+                    className={`p-4 rounded-xl border ${isActiveStripe ? "border-primary bg-primary/5" : "border-border/50 bg-card/50"} relative`}
+                  >
+                    {isActiveStripe && (
+                      <span className="absolute -top-2.5 left-3 text-xs px-2 py-0.5 rounded-full bg-primary text-primary-foreground font-medium">
+                        Your Plan
+                      </span>
+                    )}
+                    <p className="text-sm font-bold mt-1">{plan.name}</p>
+                    <p className="text-2xl font-bold text-primary mt-1">
+                      £{plan.monthly_price}<span className="text-xs text-muted-foreground font-normal">/mo</span>
+                    </p>
+                    <ul className="mt-3 space-y-1.5">
+                      {planFeatures.slice(0, 4).map((f: string) => (
+                        <li key={f} className="flex items-start gap-1.5 text-xs text-muted-foreground">
+                          <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />
+                          {f}
+                        </li>
+                      ))}
+                      {planFeatures.length > 4 && (
+                        <li className="text-xs text-muted-foreground">+{planFeatures.length - 4} more</li>
+                      )}
+                    </ul>
+                    {stripePrice && !isActiveStripe && (
+                      <Button
+                        size="sm"
+                        className="w-full mt-4"
+                        onClick={() => handleCheckout(stripePrice)}
+                        disabled={checkoutLoading === stripePrice}
+                      >
+                        {checkoutLoading === stripePrice ? (
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        ) : (
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                        )}
+                        Subscribe
+                      </Button>
+                    )}
+                    {isActiveStripe && (
+                      <Button size="sm" variant="outline" className="w-full mt-4" onClick={handlePortal} disabled={portalLoading}>
+                        Manage
+                      </Button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Usage snapshot */}
         {usageStats && (
@@ -191,10 +316,10 @@ export default function BillingPage() {
         {/* Upgrade request */}
         <div className="p-6 rounded-xl border border-border/50 bg-card/50">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold">Plan Upgrade</h3>
+            <h3 className="text-sm font-semibold">Upgrade Requests</h3>
             <Dialog open={upgradeOpen} onOpenChange={setUpgradeOpen}>
               <DialogTrigger asChild>
-                <Button size="sm"><ArrowUpCircle className="h-4 w-4 mr-2" /> Request Upgrade</Button>
+                <Button size="sm" variant="outline"><ArrowUpCircle className="h-4 w-4 mr-2" /> Request Upgrade</Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
@@ -206,7 +331,7 @@ export default function BillingPage() {
                     <Select value={requestedPlanId} onValueChange={setRequestedPlanId}>
                       <SelectTrigger className="mt-1"><SelectValue placeholder="Choose a plan" /></SelectTrigger>
                       <SelectContent>
-                        {plans?.filter((p) => p.id !== subscription?.plan_id).map((p) => (
+                        {plans?.filter((p: any) => p.id !== subscription?.plan_id).map((p: any) => (
                           <SelectItem key={p.id} value={p.id}>
                             {p.name} — £{p.monthly_price}/mo
                           </SelectItem>
