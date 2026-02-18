@@ -11,3 +11,9 @@ verify_jwt = false
 
 [functions.self-signup]
 verify_jwt = false
+
+[functions.reset-dealer-password]
+verify_jwt = false
+
+[functions.onboard-dealer]
+verify_jwt = false

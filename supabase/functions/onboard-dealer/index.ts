@@ -47,29 +47,64 @@ Deno.serve(async (req) => {
 
     const body = await req.json();
 
-    // RESEND mode
+    // RESEND mode — generates a new temp password and emails it
     if (body.resend_dealer_id) {
       const { data: dealer } = await supabaseAdmin.from("dealers").select("*").eq("id", body.resend_dealer_id).single();
       if (!dealer) throw new Error("Dealer not found");
 
-      const emailBody = buildWelcomeEmail(dealer.name, dealer.email || "", "dealerops.uk/login", null, true);
+      // Find dealer admin and reset their password
+      const { data: adminRole } = await supabaseAdmin
+        .from("user_roles")
+        .select("user_id")
+        .eq("dealer_id", dealer.id)
+        .eq("role", "dealer_admin")
+        .limit(1)
+        .single();
+
+      let resendPassword: string | null = null;
+      if (adminRole) {
+        resendPassword = crypto.randomUUID().slice(0, 16) + "Aa1!";
+        await supabaseAdmin.auth.admin.updateUserById(adminRole.user_id, { password: resendPassword });
+      }
+
+      const toEmail = dealer.email || "";
+      const emailBody = buildWelcomeEmail(dealer.name, toEmail, "dealerops.uk/login", resendPassword, false, null);
+
+      let emailStatus = "simulated";
+      const resendKey = Deno.env.get("RESEND_API_KEY");
+      if (resendKey && resendKey !== "re_placeholder") {
+        try {
+          const res = await fetch("https://api.resend.com/emails", {
+            method: "POST",
+            headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
+            body: JSON.stringify({
+              from: "DealerOps <noreply@dealerops.uk>",
+              to: [toEmail],
+              subject: "Welcome to DealerOps – Your login details",
+              text: emailBody,
+            }),
+          });
+          if (res.ok) emailStatus = "sent";
+        } catch (_) { /* fall through */ }
+      }
 
       await supabaseAdmin.from("email_outbox").insert({
         dealer_id: dealer.id,
-        to_email: dealer.email || "",
+        to_email: toEmail,
         subject: "Welcome to DealerOps – Your login details",
         body_text: emailBody,
-        status: "simulated",
+        status: emailStatus,
+        sent_at: emailStatus === "sent" ? new Date().toISOString() : null,
       });
 
       await supabaseAdmin.from("dealer_onboarding_events").insert({
         dealer_id: dealer.id,
         created_by_superadmin_user_id: caller.id,
         event_type: "WELCOME_EMAIL_SENT",
-        payload_json: { resend: true },
+        payload_json: { resend: true, status: emailStatus },
       });
 
-      return new Response(JSON.stringify({ message: "Welcome email resent (simulated)" }), {
+      return new Response(JSON.stringify({ message: `Welcome email ${emailStatus === "sent" ? "sent" : "simulated"} with new temporary password` }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -77,7 +112,8 @@ Deno.serve(async (req) => {
     // CREATE mode
     const { legal_name, trading_name, email, phone, address_line1, address_line2, city, postcode,
       fca_number, ico_number, vat_number, company_number,
-      admin_first_name, admin_last_name, admin_email, created_by } = body;
+      admin_first_name, admin_last_name, admin_email, created_by,
+      package_type } = body; // package_type: "active" | "trial"
 
     if (!legal_name || !email || !admin_first_name || !admin_last_name) {
       return new Response(JSON.stringify({ error: "Missing required fields" }), {
@@ -86,6 +122,9 @@ Deno.serve(async (req) => {
     }
 
     // 1. Create dealer record
+    const isTrial = package_type === "trial";
+    const trialEndsAt = isTrial ? new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString() : null;
+
     const { data: dealer, error: dealerErr } = await supabaseAdmin.from("dealers").insert({
       name: trading_name || legal_name,
       legal_name,
@@ -100,8 +139,9 @@ Deno.serve(async (req) => {
       ico_number: ico_number || null,
       vat_number: vat_number || null,
       company_number: company_number || null,
-      status: "active",
+      status: isTrial ? "trial" : "active",
       is_active: true,
+      trial_ends_at: trialEndsAt,
     }).select().single();
 
     if (dealerErr) throw new Error(dealerErr.message);
@@ -136,33 +176,43 @@ Deno.serve(async (req) => {
     // 5. Create dealer_preferences defaults
     await supabaseAdmin.from("dealer_preferences").insert({ dealer_id: dealer.id });
 
+    // 5b. Create trial subscription if trial package selected
+    if (isTrial) {
+      const { data: proPlan } = await supabaseAdmin
+        .from("plans")
+        .select("id")
+        .eq("name", "Professional")
+        .single();
+      const trialPlanId = proPlan?.id;
+      if (trialPlanId) {
+        await supabaseAdmin.from("dealer_subscriptions").insert({
+          dealer_id: dealer.id,
+          plan_id: trialPlanId,
+          status: "trial",
+          start_date: new Date().toISOString().split("T")[0],
+          next_review_date: trialEndsAt!.split("T")[0],
+          notes: "14-day free trial (manually onboarded)",
+        });
+        await supabaseAdmin.from("dealers").update({ plan_id: trialPlanId }).eq("id", dealer.id);
+      }
+    }
+
     // 6. Log onboarding events
     await supabaseAdmin.from("dealer_onboarding_events").insert({
       dealer_id: dealer.id,
       created_by_superadmin_user_id: created_by || caller.id,
       event_type: "DEALER_CREATED",
-      payload_json: { admin_email: adminUserEmail },
+      payload_json: { admin_email: adminUserEmail, package_type: isTrial ? "trial" : "active", trial_ends_at: trialEndsAt },
     });
 
-    // 7. Generate password reset link
-    let resetLink: string | null = null;
-    try {
-      const { data: linkData } = await supabaseAdmin.auth.admin.generateLink({
-        type: "recovery",
-        email: adminUserEmail,
-      });
-      resetLink = linkData?.properties?.action_link || null;
-    } catch (_) {
-      // If link generation fails, fall back to temp password
-    }
-
-    // 8. Send welcome email (simulated)
+    // 7. Send welcome email with temp password directly
     const emailBody = buildWelcomeEmail(
       trading_name || legal_name,
       adminUserEmail,
       "dealerops.uk/login",
-      resetLink || `Temporary password: ${tempPassword}`,
-      false,
+      tempPassword,
+      isTrial,
+      trialEndsAt,
     );
 
     let emailStatus = "simulated";
@@ -229,30 +279,38 @@ function buildWelcomeEmail(
   dealerName: string,
   loginEmail: string,
   loginUrl: string,
-  credentialInfo: string | null,
-  isResend: boolean,
+  tempPassword: string | null,
+  isTrial: boolean,
+  trialEndsAt: string | null,
 ): string {
+  const trialNote = isTrial && trialEndsAt
+    ? `\nTrial Period:\n-------------\nYour 14-day free trial ends on ${new Date(trialEndsAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}.\nTo continue using DealerOps after the trial, please upgrade to a full plan via Settings > Billing.\n`
+    : "";
+
   return `
 Welcome to DealerOps!
 ${"=".repeat(40)}
 
 Hi there,
 
-${isResend ? "This is a reminder with your login details for DealerOps." : `We're excited to welcome ${dealerName} to DealerOps – your all-in-one dealership management platform.`}
+We're excited to welcome ${dealerName} to DealerOps – your all-in-one dealership management platform.
 
 Your Login Details:
 -------------------
 Portal URL: https://${loginUrl}
 Login Email: ${loginEmail}
-${credentialInfo ? credentialInfo : "Please use the 'Forgot Password' link to set your password."}
+Temporary Password: ${tempPassword || "(contact support)"}
 
+IMPORTANT: Please log in and change your password immediately via Settings > Change Password.
+${trialNote}
 Getting Started:
 ----------------
 1. Log in at https://${loginUrl}
-2. Add your team members under Settings > Team
-3. Add your first customer and vehicle
-4. Run a vehicle check
-5. Create your first invoice
+2. Change your password via Settings > Change Password
+3. Add your team members under Settings > Team
+4. Add your first customer and vehicle
+5. Run a vehicle check
+6. Create your first invoice
 
 If you have any issues, reply to this email or use the Support tab in the platform. We can also arrange free training for your team.
 

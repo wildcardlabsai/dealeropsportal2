@@ -2,22 +2,26 @@ import { motion } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Building2, Plus, Search, Mail, RotateCcw, Eye } from "lucide-react";
+import { Building2, Plus, Search, Mail, Eye, KeyRound, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { format } from "date-fns";
+import { format, differenceInDays } from "date-fns";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const statusColors: Record<string, string> = {
   active: "bg-success/10 text-success border-success/20",
   suspended: "bg-destructive/10 text-destructive border-destructive/20",
   pending: "bg-warning/10 text-warning border-warning/20",
+  trial: "bg-primary/10 text-primary border-primary/20",
 };
 
 const initialWizard = {
@@ -25,6 +29,7 @@ const initialWizard = {
   address_line1: "", address_line2: "", city: "", postcode: "",
   fca_number: "", ico_number: "", vat_number: "", company_number: "",
   admin_first_name: "", admin_last_name: "", admin_email: "",
+  package_type: "active" as "active" | "trial",
 };
 
 export default function SuperAdminDealers() {
@@ -100,9 +105,25 @@ export default function SuperAdminDealers() {
       if (data?.error) throw new Error(data.error);
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["email-outbox"] });
-      toast.success("Welcome email resent");
+      toast.success(data?.message || "Welcome email resent with new temporary password");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
+  const resetPassword = useMutation({
+    mutationFn: async (dealerId: string) => {
+      const { data, error } = await supabase.functions.invoke("reset-dealer-password", {
+        body: { dealer_id: dealerId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["email-outbox"] });
+      toast.success(data?.message || "Password reset and emailed to dealer admin");
     },
     onError: (err: any) => toast.error(err.message),
   });
@@ -114,6 +135,12 @@ export default function SuperAdminDealers() {
   });
 
   const u = (f: string, v: any) => setForm(prev => ({ ...prev, [f]: v }));
+
+  const getTrialDaysLeft = (trialEndsAt: string | null) => {
+    if (!trialEndsAt) return null;
+    const days = differenceInDays(new Date(trialEndsAt), new Date());
+    return days;
+  };
 
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
@@ -164,6 +191,22 @@ export default function SuperAdminDealers() {
                 </div>
                 <div><Label className="text-xs">Admin Email *</Label><Input type="email" value={form.admin_email || form.email} onChange={e => u("admin_email", e.target.value)} className="mt-1" placeholder="Defaults to dealer email" /></div>
               </div>
+              <div className="p-4 rounded-lg bg-muted/30 space-y-3">
+                <h4 className="text-xs font-semibold uppercase text-muted-foreground">Package</h4>
+                <Select value={form.package_type} onValueChange={(v) => u("package_type", v)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active (Full Package)</SelectItem>
+                    <SelectItem value="trial">Trial (14-day free trial)</SelectItem>
+                  </SelectContent>
+                </Select>
+                {form.package_type === "trial" && (
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    Dealer will be on a 14-day trial of the Professional plan. You'll see a countdown in the dealer list when they're close to expiry.
+                  </p>
+                )}
+              </div>
               <Button
                 onClick={() => createDealerWizard.mutate()}
                 disabled={!form.legal_name || !form.email || !form.admin_first_name || !form.admin_last_name || createDealerWizard.isPending}
@@ -210,61 +253,96 @@ export default function SuperAdminDealers() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((d) => (
-                    <tr key={d.id} className="border-b border-border/30 hover:bg-muted/30 transition-colors">
-                      <td className="p-3">
-                        <p className="text-sm font-medium">{d.name}</p>
-                        {d.city && <p className="text-xs text-muted-foreground">{d.city}</p>}
-                      </td>
-                      <td className="p-3 hidden md:table-cell">
-                        <p className="text-xs text-muted-foreground">{d.email || "—"}</p>
-                        <p className="text-xs text-muted-foreground">{d.phone || ""}</p>
-                      </td>
-                      <td className="p-3">
-                        <span className={`text-xs px-2 py-0.5 rounded-full border ${statusColors[d.status]}`}>{d.status}</span>
-                      </td>
-                      <td className="p-3 hidden lg:table-cell text-xs text-muted-foreground">
-                        {format(new Date(d.created_at), "d MMM yyyy")}
-                      </td>
-                      <td className="p-3">
-                        <div className="flex items-center gap-2 justify-end flex-wrap">
-                          <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => resendWelcome.mutate(d.id)} title="Resend welcome email">
-                            <Mail className="h-3.5 w-3.5" />
-                          </Button>
-                          <Select value={d.status} onValueChange={(v) => updateStatus.mutate({ id: d.id, status: v })}>
-                            <SelectTrigger className="w-28 h-7 text-xs"><SelectValue /></SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="active">Active</SelectItem>
-                              <SelectItem value="suspended">Suspended</SelectItem>
-                              <SelectItem value="pending">Pending</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <Select
-                            value={d.plan_id || ""}
-                            onValueChange={async (planId) => {
-                              if (!planId) return;
-                              const planLabel = planId === "starter" ? "Starter" : planId === "professional" ? "Professional" : planId === "elite" ? "Elite" : planId;
-                              const { error } = await supabase.from("dealers").update({ plan_id: planId as any }).eq("id", d.id);
-                              if (error) { toast.error(error.message); return; }
-                              await supabase.from("audit_logs").insert({
-                                dealer_id: d.id, actor_user_id: user?.id, action_type: "PLAN_CHANGED",
-                                entity_type: "dealer", entity_id: d.id, summary: `Plan changed to ${planLabel}`,
-                              });
-                              queryClient.invalidateQueries({ queryKey: ["admin-dealers"] });
-                              toast.success(`Plan updated to ${planLabel}`);
-                            }}
-                          >
-                            <SelectTrigger className="w-32 h-7 text-xs"><SelectValue placeholder="Set Plan" /></SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="starter">Starter</SelectItem>
-                              <SelectItem value="professional">Professional</SelectItem>
-                              <SelectItem value="elite">Elite</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                  {filtered.map((d) => {
+                    const trialDaysLeft = getTrialDaysLeft(d.trial_ends_at);
+                    const trialExpiringSoon = trialDaysLeft !== null && trialDaysLeft <= 3 && trialDaysLeft >= 0;
+                    const trialExpired = trialDaysLeft !== null && trialDaysLeft < 0;
+                    return (
+                      <tr key={d.id} className="border-b border-border/30 hover:bg-muted/30 transition-colors">
+                        <td className="p-3">
+                          <p className="text-sm font-medium">{d.name}</p>
+                          {d.city && <p className="text-xs text-muted-foreground">{d.city}</p>}
+                          {trialDaysLeft !== null && (
+                            <p className={`text-xs flex items-center gap-1 mt-0.5 ${trialExpired ? "text-destructive" : trialExpiringSoon ? "text-warning" : "text-muted-foreground"}`}>
+                              <Clock className="h-3 w-3" />
+                              {trialExpired ? "Trial expired" : `Trial: ${trialDaysLeft}d left`}
+                            </p>
+                          )}
+                        </td>
+                        <td className="p-3 hidden md:table-cell">
+                          <p className="text-xs text-muted-foreground">{d.email || "—"}</p>
+                          <p className="text-xs text-muted-foreground">{d.phone || ""}</p>
+                        </td>
+                        <td className="p-3">
+                          <span className={`text-xs px-2 py-0.5 rounded-full border ${statusColors[d.status] ?? statusColors.pending}`}>{d.status}</span>
+                        </td>
+                        <td className="p-3 hidden lg:table-cell text-xs text-muted-foreground">
+                          {format(new Date(d.created_at), "d MMM yyyy")}
+                        </td>
+                        <td className="p-3">
+                          <div className="flex items-center gap-1.5 justify-end flex-wrap">
+                            {/* Resend welcome email */}
+                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => resendWelcome.mutate(d.id)} title="Resend welcome email with new temp password">
+                              <Mail className="h-3.5 w-3.5" />
+                            </Button>
+                            {/* Reset password */}
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button size="sm" variant="ghost" className="h-7 w-7 p-0" title="Reset admin password">
+                                  <KeyRound className="h-3.5 w-3.5" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Reset Password for {d.name}?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    This will generate a new temporary password for the dealer admin and email it to them. Their current password will be invalidated immediately.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => resetPassword.mutate(d.id)}>Reset & Email Password</AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                            {/* Status dropdown */}
+                            <Select value={d.status} onValueChange={(v) => updateStatus.mutate({ id: d.id, status: v })}>
+                              <SelectTrigger className="w-24 h-7 text-xs"><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="active">Active</SelectItem>
+                                <SelectItem value="trial">Trial</SelectItem>
+                                <SelectItem value="suspended">Suspended</SelectItem>
+                                <SelectItem value="pending">Pending</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            {/* Plan dropdown */}
+                            <Select
+                              value={d.plan_id || ""}
+                              onValueChange={async (planId) => {
+                                if (!planId) return;
+                                const planLabel = planId === "starter" ? "Starter" : planId === "professional" ? "Professional" : planId === "elite" ? "Elite" : planId;
+                                const { error } = await supabase.from("dealers").update({ plan_id: planId as any }).eq("id", d.id);
+                                if (error) { toast.error(error.message); return; }
+                                await supabase.from("audit_logs").insert({
+                                  dealer_id: d.id, actor_user_id: user?.id, action_type: "PLAN_CHANGED",
+                                  entity_type: "dealer", entity_id: d.id, summary: `Plan changed to ${planLabel}`,
+                                });
+                                queryClient.invalidateQueries({ queryKey: ["admin-dealers"] });
+                                toast.success(`Plan updated to ${planLabel}`);
+                              }}
+                            >
+                              <SelectTrigger className="w-28 h-7 text-xs"><SelectValue placeholder="Set Plan" /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="starter">Starter</SelectItem>
+                                <SelectItem value="professional">Professional</SelectItem>
+                                <SelectItem value="elite">Elite</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
