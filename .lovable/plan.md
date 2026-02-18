@@ -1,105 +1,127 @@
 
+# AI Assistant for the Dealer Panel
 
-# Public Pages Design Improvement Plan
+## Overview
 
-After reviewing all six public pages, here's what I'd recommend upgrading. The homepage was recently redesigned to a high standard -- these pages should now match that level of polish, depth, and conversion focus.
-
----
-
-## 1. Features Page (`/features`)
-
-**Current state:** A simple heading + 2-column grid of 14 feature cards. Feels flat and monotonous -- every feature looks identical.
-
-**Proposed improvements:**
-- Add a hero section with a tagline badge (like the homepage) and stronger copy
-- Group features into categories (e.g. "Sales & CRM", "Aftersales & Compliance", "Operations & Reporting") with section headings
-- Highlight 3-4 key features with larger, more detailed cards (icon, title, 3-4 bullet points) while keeping secondary features in a compact grid
-- Add a bottom CTA section ("Ready to see it in action? Start your free trial")
-- Add staggered `fadeUp` animations consistent with the homepage style
+A floating AI chat assistant will be embedded into the dealer panel, accessible from every page via a chat bubble in the bottom-right corner. It will be context-aware (knowing the dealer's data), conversational, and able to help with daily tasks, compliance questions, and platform navigation.
 
 ---
 
-## 2. Pricing Page (`/pricing`)
+## What it will do
 
-**Current state:** Clean 3-column layout with Starter/Professional/Enterprise. Functional but lacks depth.
+The assistant will be able to:
+- Answer questions about the dealer's own data ("How many open leads do I have?", "Show me overdue tasks")
+- Provide guidance on compliance, FCA rules, and GDPR
+- Explain CRA Shield scores and aftersales case statuses
+- Give a daily briefing (expiring warranties, overdue tasks, trial status)
+- Help navigate the platform ("Where do I raise an aftersales case?")
+- Answer general dealership business questions
 
-**Proposed improvements:**
-- Add a toggle for monthly vs annual pricing (with a "Save 20%" badge on annual)
-- Add a FAQ/accordion section below the cards addressing common objections (e.g. "Can I switch plans?", "Is there a setup fee?", "What happens after my trial?")
-- Add a "Compare all features" expandable table showing tick/cross per plan
-- Improve the pricing teaser on the homepage to match (currently says "from £49" but Starter is £99 -- fix this inconsistency)
-- Add a "Not sure? Talk to us" CTA at the bottom linking to the demo dialog
-- Add trust badges row (same as homepage)
-
----
-
-## 3. Contact Page (`/contact`)
-
-**Current state:** Basic form that doesn't actually save data (just shows a toast). No contact details shown.
-
-**Proposed improvements:**
-- Actually submit form data to the `contact_leads` table (currently it does nothing)
-- Add a two-column layout: form on the right, company info on the left (email address, phone, business hours, registered address)
-- Add a "Prefer a quick demo?" button that opens the existing `DemoRequestDialog`
-- Add expected response time ("We typically respond within 4 business hours")
-- Trigger the auto-responder email on submission (same as demo requests)
+It will NOT have write access — it reads and explains, it does not create or modify records.
 
 ---
 
-## 4. Security Page (`/security`)
+## Architecture
 
-**Current state:** Heading + 6 cards in a 2-column grid. Reads more like a checklist than a trust-building page.
+```text
+[Dealer UI] → floating chat bubble
+     ↓ open
+[Chat Panel] — sends messages
+     ↓
+[Edge Function: dealer-ai-chat]
+     ├── Fetches dealer context (stats, open items) from DB using service role
+     ├── Builds system prompt with dealer-specific context
+     └── Streams response from Lovable AI (gemini-3-flash-preview)
+```
 
-**Proposed improvements:**
-- Add a hero section with a shield/lock visual motif and stronger headline (e.g. "Your data, locked down")
-- Add a "Certifications & Standards" row with badge-style items (GDPR, ICO registered, ISO 27001 ready, UK data centres)
-- Add a "How we protect your data" section with a simple 3-step visual flow (Encrypt > Isolate > Audit)
-- Add a "Questions about security?" CTA at the bottom linking to contact
-- Use the glass card styling from the homepage for visual consistency
-
----
-
-## 5. Support Page (`/support`)
-
-**Current state:** 4 cards and a "Contact Us" button. Very thin -- feels like a placeholder.
-
-**Proposed improvements:**
-- Add SLA comparison table by plan tier (response times, channels, dedicated support)
-- Add an "Onboarding process" section with a 3-step timeline (Setup call > Data import > Go live)
-- Add a "Common questions" FAQ accordion section
-- Add contact details (support email, operating hours)
-- Add a "Need help now?" CTA that opens the demo dialog or links to contact
+The edge function uses the `LOVABLE_API_KEY` already configured — no new secrets needed.
 
 ---
 
-## 6. Footer
+## Components to Build
 
-**Current state:** Functional but basic. Legal links are placeholder text (not actual links).
+### 1. Edge Function — `supabase/functions/dealer-ai-chat/index.ts`
+- Accepts `{ messages, dealerId }` from the authenticated request
+- Validates the dealer has access (JWT check)
+- Fetches a live snapshot of dealer data:
+  - Open leads count
+  - Active warranties
+  - Overdue tasks
+  - Open aftersales cases
+  - Open compliance items (complaints, DSRs)
+  - Trial status / days remaining
+- Injects this context into a system prompt
+- Streams the response back using `gemini-3-flash-preview` via Lovable AI gateway
+- Handles 429/402 rate limit errors gracefully
 
-**Proposed improvements:**
-- Add social media icon links (placeholder hrefs for now)
-- Make Privacy Policy and Terms of Service actual route links (create simple placeholder pages)
-- Add a mini newsletter signup or "Request a demo" CTA in the footer
-- Add a tagline under the logo ("Purpose-built for UK motor trade")
+### 2. Chat UI Component — `src/components/app/DealerAIChat.tsx`
+A self-contained floating chat widget:
+- **Trigger button**: Fixed bottom-right `Bot` icon button with a pulsing indicator
+- **Chat panel**: Slides up as a card (not a full-page modal) — roughly 400px wide, 500px tall
+- **Message list**: Shows user and assistant messages with markdown rendering (using `dangerouslySetInnerHTML` with basic markdown parsing or a lightweight approach)
+- **Input bar**: Text input + send button, `Enter` to send
+- **Streaming**: Tokens render as they arrive, no full-page reload
+- **Suggested prompts**: On first open, shows 4 quick-start chips:
+  - "Give me a daily briefing"
+  - "How many open leads do I have?"
+  - "What are my overdue tasks?"
+  - "Explain my CRA Shield score"
+- **Clear chat**: Button to reset the conversation
+- **Loading state**: Animated dots while the assistant is thinking
+
+### 3. Integration into AppLayout — `src/components/app/AppLayout.tsx`
+- Import and render `<DealerAIChat />` inside the layout, alongside `<Outlet />`
+- It will float over all dealer pages without affecting layout flow
+
+### 4. Config — `supabase/config.toml`
+- Add `[functions.dealer-ai-chat]` with `verify_jwt = false` (JWT validated manually in the function using the auth header)
 
 ---
 
-## 7. Login Page
+## System Prompt Design
 
-**Current state:** Clean and functional. The dev quick-login buttons are visible -- these should be hidden in production but are fine for now.
+The AI will receive a context-rich system prompt like:
 
-**Proposed improvements:**
-- Minor: add a subtle background pattern or gradient to match the homepage aesthetic
-- Add a small "What is DealerOps?" link for visitors who land directly on the login page
+```
+You are DealerOps AI, an assistant embedded in the DealerOps platform for a UK motor dealership.
+
+Current dealer snapshot (live data):
+- Open Leads: 12
+- Active Warranties: 8
+- Overdue Tasks: 3
+- Open Aftersales Cases: 5
+- Open Complaints: 1
+- Open DSRs: 0
+- Trial: 9 days remaining
+
+You help dealer staff understand their data, navigate the platform, and answer compliance questions (FCA, GDPR, Consumer Duty). You do not modify records. Be concise, professional, and helpful.
+```
 
 ---
 
-## Technical Details
+## Security Considerations
 
-- All pages will use the same `fadeUp` animation variants and `motion` patterns from the homepage for consistency
-- New FAQ sections will use the existing Radix `Accordion` component
-- The Contact form will be wired to insert into `contact_leads` and invoke the `send-demo-confirmation` edge function
-- The pricing inconsistency (homepage says "from £49" but cheapest plan is £99) will be corrected
-- No new dependencies needed -- everything uses existing `framer-motion`, `lucide-react`, and Radix UI components
-- Estimated files to create/modify: 7-8 files
+- The edge function reads the JWT from the `Authorization` header and verifies the user's `dealer_id` from their profile before fetching any data
+- All data fetching uses the service role key server-side — the client never sees raw data queries
+- The assistant only has access to the dealer's own scoped data (RLS-equivalent filtering done manually in the function)
+- No write operations are performed by the AI
 
+---
+
+## Files to Create / Modify
+
+| File | Action |
+|---|---|
+| `supabase/functions/dealer-ai-chat/index.ts` | Create — edge function |
+| `src/components/app/DealerAIChat.tsx` | Create — floating chat UI |
+| `src/components/app/AppLayout.tsx` | Edit — add `<DealerAIChat />` |
+| `supabase/config.toml` | Edit — register new function |
+
+---
+
+## Design Style
+
+- Matches existing dark/light theme using Tailwind and existing `bg-card`, `border-border`, `text-primary` tokens
+- Floating button uses `bg-primary` with a subtle `ring-2 ring-primary/30` glow
+- Chat panel uses the same card/border styling as the rest of the app
+- No third-party UI libraries needed beyond what's already installed
