@@ -49,6 +49,15 @@ export default function SuperAdminDealers() {
     },
   });
 
+  const { data: plans } = useQuery({
+    queryKey: ["admin-plans"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("plans").select("id, name").eq("is_active", true).order("monthly_price");
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const { data: emailOutbox } = useQuery({
     queryKey: ["email-outbox"],
     queryFn: async () => {
@@ -316,28 +325,29 @@ export default function SuperAdminDealers() {
                               </SelectContent>
                             </Select>
                             {/* Plan dropdown */}
-                            <Select
-                              value={d.plan_id || ""}
-                              onValueChange={async (planId) => {
-                                if (!planId) return;
-                                const planLabel = planId === "starter" ? "Starter" : planId === "professional" ? "Professional" : planId === "elite" ? "Elite" : planId;
-                                const { error } = await supabase.from("dealers").update({ plan_id: planId as any }).eq("id", d.id);
-                                if (error) { toast.error(error.message); return; }
-                                await supabase.from("audit_logs").insert({
-                                  dealer_id: d.id, actor_user_id: user?.id, action_type: "PLAN_CHANGED",
-                                  entity_type: "dealer", entity_id: d.id, summary: `Plan changed to ${planLabel}`,
-                                });
-                                queryClient.invalidateQueries({ queryKey: ["admin-dealers"] });
-                                toast.success(`Plan updated to ${planLabel}`);
-                              }}
-                            >
-                              <SelectTrigger className="w-28 h-7 text-xs"><SelectValue placeholder="Set Plan" /></SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="starter">Starter</SelectItem>
-                                <SelectItem value="professional">Professional</SelectItem>
-                                <SelectItem value="elite">Elite</SelectItem>
-                              </SelectContent>
-                            </Select>
+                             <Select
+                               value={d.plan_id || ""}
+                               onValueChange={async (planUuid) => {
+                                 if (!planUuid) return;
+                                 const planEntry = plans?.find(p => p.id === planUuid);
+                                 const planLabel = planEntry?.name || planUuid;
+                                 const { error } = await supabase.from("dealers").update({ plan_id: planUuid as any }).eq("id", d.id);
+                                 if (error) { toast.error(error.message); return; }
+                                 await supabase.from("audit_logs").insert({
+                                   dealer_id: d.id, actor_user_id: user?.id, action_type: "PLAN_CHANGED",
+                                   entity_type: "dealer", entity_id: d.id, summary: `Plan changed to ${planLabel}`,
+                                 });
+                                 queryClient.invalidateQueries({ queryKey: ["admin-dealers"] });
+                                 toast.success(`Plan updated to ${planLabel}`);
+                               }}
+                             >
+                               <SelectTrigger className="w-28 h-7 text-xs"><SelectValue placeholder="Set Plan" /></SelectTrigger>
+                               <SelectContent>
+                                 {plans?.map(p => (
+                                   <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                                 ))}
+                               </SelectContent>
+                             </Select>
                           </div>
                         </td>
                       </tr>
