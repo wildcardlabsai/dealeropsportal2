@@ -2,13 +2,14 @@ import { motion } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Building2, Plus, Search, Mail, Eye, KeyRound, Clock, Send } from "lucide-react";
+import { Building2, Plus, Search, Mail, Eye, KeyRound, Clock, Send, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { format, differenceInDays } from "date-fns";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
@@ -39,6 +40,10 @@ export default function SuperAdminDealers() {
   const [emailPreview, setEmailPreview] = useState<any>(null);
   const [search, setSearch] = useState("");
   const [form, setForm] = useState({ ...initialWizard });
+  const [setPasswordDialog, setSetPasswordDialog] = useState<{ open: boolean; dealerId: string; dealerName: string } | null>(null);
+  const [newPassword, setNewPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [notifyDealer, setNotifyDealer] = useState(true);
 
   const { data: dealers, isLoading } = useQuery({
     queryKey: ["admin-dealers"],
@@ -109,7 +114,6 @@ export default function SuperAdminDealers() {
     mutationFn: async (dealerId: string) => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error("You are not logged in. Please refresh and try again.");
-
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/onboard-dealer`,
         {
@@ -137,7 +141,6 @@ export default function SuperAdminDealers() {
     mutationFn: async (dealerId: string) => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error("You are not logged in. Please refresh and try again.");
-
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/onboard-dealer`,
         {
@@ -175,6 +178,36 @@ export default function SuperAdminDealers() {
       toast.success(data?.message || "Password reset and emailed to dealer admin");
     },
     onError: (err: any) => toast.error(err.message),
+  });
+
+  const setDealerPassword = useMutation({
+    mutationFn: async ({ dealerId, password, notify }: { dealerId: string; password: string; notify: boolean }) => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("You are not logged in. Please refresh and try again.");
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/set-dealer-password`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session.access_token}`,
+            "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+          body: JSON.stringify({ dealer_id: dealerId, new_password: password, notify_dealer: notify }),
+        }
+      );
+      const json = await response.json();
+      if (!response.ok) throw new Error(json?.error || `Error ${response.status}`);
+      return json;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["email-outbox"] });
+      toast.success(data?.message || "Password updated successfully");
+      setSetPasswordDialog(null);
+      setNewPassword("");
+      setNotifyDealer(true);
+    },
+    onError: (err: any) => toast.error(`Failed: ${err.message}`),
   });
 
   const filtered = dealers?.filter(d => {
@@ -268,6 +301,71 @@ export default function SuperAdminDealers() {
         </Dialog>
       </div>
 
+      {/* Set Password Dialog */}
+      <Dialog open={!!setPasswordDialog?.open} onOpenChange={(open) => {
+        if (!open) { setSetPasswordDialog(null); setNewPassword(""); setShowPassword(false); setNotifyDealer(true); }
+      }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Lock className="h-4 w-4" />
+              Set Password – {setPasswordDialog?.dealerName}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div>
+              <Label className="text-xs">New Password</Label>
+              <div className="relative mt-1">
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  value={newPassword}
+                  onChange={e => setNewPassword(e.target.value)}
+                  placeholder="Enter a password (min. 8 characters)"
+                  className="pr-20"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(p => !p)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-foreground"
+                >
+                  {showPassword ? "Hide" : "Show"}
+                </button>
+              </div>
+              {newPassword.length > 0 && newPassword.length < 8 && (
+                <p className="text-xs text-destructive mt-1">Password must be at least 8 characters</p>
+              )}
+            </div>
+            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
+              <div>
+                <p className="text-sm font-medium">Notify dealer by email</p>
+                <p className="text-xs text-muted-foreground">Send the new password to the dealer admin</p>
+              </div>
+              <Switch checked={notifyDealer} onCheckedChange={setNotifyDealer} />
+            </div>
+            {!notifyDealer && (
+              <p className="text-xs text-warning bg-warning/10 border border-warning/20 rounded-lg p-3">
+                The dealer will <strong>not</strong> be emailed. Make sure you communicate the new password to them directly.
+              </p>
+            )}
+            <div className="flex gap-2 pt-1">
+              <Button variant="outline" className="flex-1" onClick={() => { setSetPasswordDialog(null); setNewPassword(""); setShowPassword(false); setNotifyDealer(true); }}>
+                Cancel
+              </Button>
+              <Button
+                className="flex-1"
+                disabled={newPassword.length < 8 || setDealerPassword.isPending}
+                onClick={() => {
+                  if (!setPasswordDialog) return;
+                  setDealerPassword.mutate({ dealerId: setPasswordDialog.dealerId, password: newPassword, notify: notifyDealer });
+                }}
+              >
+                {setDealerPassword.isPending ? "Updating..." : "Set Password"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Tabs defaultValue="dealers">
         <TabsList className="mb-4">
           <TabsTrigger value="dealers">Dealers</TabsTrigger>
@@ -330,7 +428,7 @@ export default function SuperAdminDealers() {
                         </td>
                         <td className="p-3">
                           <div className="flex items-center gap-1.5 justify-end flex-wrap">
-                            {/* Resend welcome email only (no password reset) */}
+                            {/* Send welcome email only (no password reset) */}
                             <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => resendEmailOnly.mutate(d.id)} title="Resend welcome email (keep current password)">
                               <Send className="h-3.5 w-3.5" />
                             </Button>
@@ -338,10 +436,18 @@ export default function SuperAdminDealers() {
                             <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => resendWelcome.mutate(d.id)} title="Resend welcome email with NEW temp password">
                               <Mail className="h-3.5 w-3.5" />
                             </Button>
-                            {/* Reset password */}
+                            {/* Manually set a specific password */}
+                            <Button
+                              size="sm" variant="ghost" className="h-7 w-7 p-0"
+                              title="Manually set a specific password"
+                              onClick={() => { setSetPasswordDialog({ open: true, dealerId: d.id, dealerName: d.name }); setNewPassword(""); setShowPassword(false); setNotifyDealer(true); }}
+                            >
+                              <Lock className="h-3.5 w-3.5" />
+                            </Button>
+                            {/* Reset password (random temp) */}
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
-                                <Button size="sm" variant="ghost" className="h-7 w-7 p-0" title="Reset admin password">
+                                <Button size="sm" variant="ghost" className="h-7 w-7 p-0" title="Reset admin password (random temp)">
                                   <KeyRound className="h-3.5 w-3.5" />
                                 </Button>
                               </AlertDialogTrigger>
@@ -349,7 +455,7 @@ export default function SuperAdminDealers() {
                                 <AlertDialogHeader>
                                   <AlertDialogTitle>Reset Password for {d.name}?</AlertDialogTitle>
                                   <AlertDialogDescription>
-                                    This will generate a new temporary password for the dealer admin and email it to them. Their current password will be invalidated immediately.
+                                    This will generate a new random temporary password for the dealer admin and email it to them. Their current password will be invalidated immediately.
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
@@ -369,29 +475,29 @@ export default function SuperAdminDealers() {
                               </SelectContent>
                             </Select>
                             {/* Plan dropdown */}
-                             <Select
-                               value={d.plan_id || ""}
-                               onValueChange={async (planUuid) => {
-                                 if (!planUuid) return;
-                                 const planEntry = plans?.find(p => p.id === planUuid);
-                                 const planLabel = planEntry?.name || planUuid;
-                                 const { error } = await supabase.from("dealers").update({ plan_id: planUuid as any }).eq("id", d.id);
-                                 if (error) { toast.error(error.message); return; }
-                                 await supabase.from("audit_logs").insert({
-                                   dealer_id: d.id, actor_user_id: user?.id, action_type: "PLAN_CHANGED",
-                                   entity_type: "dealer", entity_id: d.id, summary: `Plan changed to ${planLabel}`,
-                                 });
-                                 queryClient.invalidateQueries({ queryKey: ["admin-dealers"] });
-                                 toast.success(`Plan updated to ${planLabel}`);
-                               }}
-                             >
-                               <SelectTrigger className="w-28 h-7 text-xs"><SelectValue placeholder="Set Plan" /></SelectTrigger>
-                               <SelectContent>
-                                 {plans?.map(p => (
-                                   <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                                 ))}
-                               </SelectContent>
-                             </Select>
+                            <Select
+                              value={d.plan_id || ""}
+                              onValueChange={async (planUuid) => {
+                                if (!planUuid) return;
+                                const planEntry = plans?.find(p => p.id === planUuid);
+                                const planLabel = planEntry?.name || planUuid;
+                                const { error } = await supabase.from("dealers").update({ plan_id: planUuid as any }).eq("id", d.id);
+                                if (error) { toast.error(error.message); return; }
+                                await supabase.from("audit_logs").insert({
+                                  dealer_id: d.id, actor_user_id: user?.id, action_type: "PLAN_CHANGED",
+                                  entity_type: "dealer", entity_id: d.id, summary: `Plan changed to ${planLabel}`,
+                                });
+                                queryClient.invalidateQueries({ queryKey: ["admin-dealers"] });
+                                toast.success(`Plan updated to ${planLabel}`);
+                              }}
+                            >
+                              <SelectTrigger className="w-28 h-7 text-xs"><SelectValue placeholder="Set Plan" /></SelectTrigger>
+                              <SelectContent>
+                                {plans?.map(p => (
+                                  <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </div>
                         </td>
                       </tr>
