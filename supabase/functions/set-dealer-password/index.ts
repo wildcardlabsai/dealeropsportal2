@@ -30,8 +30,9 @@ Deno.serve(async (req) => {
       { global: { headers: { Authorization: authHeader } }, auth: { autoRefreshToken: false, persistSession: false } }
     );
 
-    const { data: { user: caller } } = await userClient.auth.getUser();
-    if (!caller) {
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user: caller }, error: callerErr } = await userClient.auth.getUser(token);
+    if (callerErr || !caller) {
       return new Response(JSON.stringify({ error: "Invalid user" }), {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
