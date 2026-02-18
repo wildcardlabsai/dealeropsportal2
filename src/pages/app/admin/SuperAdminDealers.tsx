@@ -73,12 +73,23 @@ export default function SuperAdminDealers() {
 
   const createDealerWizard = useMutation({
     mutationFn: async () => {
-      const { data, error } = await supabase.functions.invoke("onboard-dealer", {
-        body: { ...form, created_by: user?.id },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      return data;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("You are not logged in. Please refresh and try again.");
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/onboard-dealer`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session.access_token}`,
+            "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+          body: JSON.stringify({ ...form, created_by: user?.id }),
+        }
+      );
+      const json = await response.json();
+      if (!response.ok) throw new Error(json?.error || `Error ${response.status}`);
+      return json;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["admin-dealers"] });
@@ -166,12 +177,23 @@ export default function SuperAdminDealers() {
 
   const resetPassword = useMutation({
     mutationFn: async (dealerId: string) => {
-      const { data, error } = await supabase.functions.invoke("reset-dealer-password", {
-        body: { dealer_id: dealerId },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      return data;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("You are not logged in. Please refresh and try again.");
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/reset-dealer-password`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session.access_token}`,
+            "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+          body: JSON.stringify({ dealer_id: dealerId }),
+        }
+      );
+      const json = await response.json();
+      if (!response.ok) throw new Error(json?.error || `Error ${response.status}`);
+      return json;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["email-outbox"] });
