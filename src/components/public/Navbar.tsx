@@ -9,7 +9,7 @@ const navLinks = [
   { label: "Features", to: "/features" },
   { label: "Pricing", to: "/pricing" },
   { label: "Security", to: "/security" },
-  { label: "Support", to: "/support" },
+  { label: "Help", to: "/help" },
   { label: "Contact", to: "/contact" },
 ];
 

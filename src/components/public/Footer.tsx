@@ -39,6 +39,7 @@ export function Footer() {
             <h4 className="text-sm font-semibold text-foreground mb-3">Support</h4>
             <ul className="space-y-2">
               {[
+                { label: "Knowledge Base", to: "/help" },
                 { label: "Help Centre", to: "/support" },
                 { label: "Contact", to: "/contact" },
               ].map((item) => (
