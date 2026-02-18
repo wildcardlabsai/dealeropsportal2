@@ -58,7 +58,8 @@ function useAnalyticsData() {
 
       // ── Subscription revenue breakdown ───────────────────────────────────
       const activeSubs = subscriptions.filter((s: any) => s.status === "active");
-      const trialSubs = subscriptions.filter((s: any) => s.status === "trial");
+      // Trial count sourced from dealers table (status field), not dealer_subscriptions
+      const trialDealerCount = dealers.filter((d: any) => d.status === "trial").length;
 
       // MRR based on active dealers and their assigned plan price
       const activeDealersList = dealers.filter((d: any) => d.status === "active");
@@ -134,7 +135,7 @@ function useAnalyticsData() {
         mrr, arr,
         totalDealers: dealers.length,
         activeDealers: dealers.filter((d: any) => d.status === "active").length,
-        trialDealers: trialSubs.length,
+        trialDealers: trialDealerCount,
         todayActions,
         activeDeralersToday,
         liveCount,
