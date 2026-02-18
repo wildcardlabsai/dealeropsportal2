@@ -49,11 +49,15 @@ Deno.serve(async (req) => {
 
     // RESEND mode — generates a new temp password and emails it
     if (body.resend_dealer_id) {
-      const { data: dealer } = await supabaseAdmin.from("dealers").select("*").eq("id", body.resend_dealer_id).single();
-      if (!dealer) throw new Error("Dealer not found");
+      console.log("[RESEND] Starting resend for dealer:", body.resend_dealer_id);
 
-      // Find dealer admin and reset their password
-      const { data: adminRole } = await supabaseAdmin
+      const { data: dealer, error: dealerFetchErr } = await supabaseAdmin.from("dealers").select("*").eq("id", body.resend_dealer_id).single();
+      if (dealerFetchErr) throw new Error(`Dealer fetch error: ${dealerFetchErr.message}`);
+      if (!dealer) throw new Error("Dealer not found");
+      console.log("[RESEND] Dealer found:", dealer.name);
+
+      // Find dealer admin user_id
+      const { data: adminRole, error: adminRoleErr } = await supabaseAdmin
         .from("user_roles")
         .select("user_id")
         .eq("dealer_id", dealer.id)
@@ -61,23 +65,25 @@ Deno.serve(async (req) => {
         .limit(1)
         .single();
 
-      let resendPassword: string | null = null;
-      let toEmail = dealer.email || "";
+      if (adminRoleErr) throw new Error(`Admin role lookup error: ${adminRoleErr.message}`);
+      if (!adminRole) throw new Error("No dealer_admin user found for this dealer");
+      console.log("[RESEND] Admin user_id:", adminRole.user_id);
 
-      if (adminRole) {
-        resendPassword = crypto.randomUUID().slice(0, 16) + "Aa1!";
-        await supabaseAdmin.auth.admin.updateUserById(adminRole.user_id, { password: resendPassword });
-        // Use the admin's actual auth email (their login email), not the dealer business email
-        const { data: adminAuthUser } = await supabaseAdmin.auth.admin.getUserById(adminRole.user_id);
-        if (adminAuthUser?.user?.email) {
-          toEmail = adminAuthUser.user.email;
-        }
-      }
+      // Get the admin's actual login email from auth
+      const { data: adminAuthData, error: authLookupErr } = await supabaseAdmin.auth.admin.getUserById(adminRole.user_id);
+      if (authLookupErr) throw new Error(`Auth user lookup error: ${authLookupErr.message}`);
+      if (!adminAuthData?.user?.email) throw new Error("Could not retrieve admin email from auth");
+      const toEmail = adminAuthData.user.email;
+      console.log("[RESEND] Sending to email:", toEmail);
 
-      if (!toEmail) throw new Error("No email address found for this dealer's admin user");
-      const emailBody = buildWelcomeEmail(dealer.name, toEmail, "dealerops.uk/login", resendPassword, false, null);
+      // Generate new temp password and reset it
+      const resendPassword = crypto.randomUUID().slice(0, 16) + "Aa1!";
+      const { error: pwUpdateErr } = await supabaseAdmin.auth.admin.updateUserById(adminRole.user_id, { password: resendPassword });
+      if (pwUpdateErr) throw new Error(`Password update error: ${pwUpdateErr.message}`);
+      console.log("[RESEND] Password updated successfully");
 
-      let emailStatus = "simulated";
+      const emailBody = buildWelcomeEmail(dealer.name, toEmail, "dealerops.uk/login", resendPassword, dealer.status === "trial", dealer.trial_ends_at);
+
       const resendKey = Deno.env.get("RESEND_API_KEY");
       if (!resendKey) throw new Error("RESEND_API_KEY secret is not configured");
 
@@ -96,25 +102,29 @@ Deno.serve(async (req) => {
         const errBody = await resendRes.text();
         throw new Error(`Resend API error ${resendRes.status}: ${errBody}`);
       }
-      emailStatus = "sent";
+      console.log("[RESEND] Email sent successfully via Resend");
 
-      await supabaseAdmin.from("email_outbox").insert({
+      // Log to email_outbox (non-fatal if it fails)
+      const { error: outboxErr } = await supabaseAdmin.from("email_outbox").insert({
         dealer_id: dealer.id,
         to_email: toEmail,
         subject: "Welcome to DealerOps – Your login details",
         body_text: emailBody,
-        status: emailStatus,
-        sent_at: emailStatus === "sent" ? new Date().toISOString() : null,
+        status: "sent",
+        sent_at: new Date().toISOString(),
       });
+      if (outboxErr) console.warn("[RESEND] email_outbox insert warning:", outboxErr.message);
 
-      await supabaseAdmin.from("dealer_onboarding_events").insert({
+      // Log onboarding event (non-fatal if it fails)
+      const { error: eventErr } = await supabaseAdmin.from("dealer_onboarding_events").insert({
         dealer_id: dealer.id,
         created_by_superadmin_user_id: caller.id,
         event_type: "WELCOME_EMAIL_SENT",
-        payload_json: { resend: true, status: emailStatus },
+        payload_json: { resend: true, status: "sent" },
       });
+      if (eventErr) console.warn("[RESEND] onboarding_event insert warning:", eventErr.message);
 
-      return new Response(JSON.stringify({ message: `Welcome email ${emailStatus === "sent" ? "sent" : "simulated"} with new temporary password` }), {
+      return new Response(JSON.stringify({ message: `Welcome email sent with new temporary password to ${toEmail}` }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }

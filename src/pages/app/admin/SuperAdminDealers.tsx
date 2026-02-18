@@ -107,18 +107,30 @@ export default function SuperAdminDealers() {
 
   const resendWelcome = useMutation({
     mutationFn: async (dealerId: string) => {
-      const { data, error } = await supabase.functions.invoke("onboard-dealer", {
-        body: { resend_dealer_id: dealerId, created_by: user?.id },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      return data;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("You are not logged in. Please refresh and try again.");
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/onboard-dealer`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session.access_token}`,
+            "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+          body: JSON.stringify({ resend_dealer_id: dealerId, created_by: user?.id }),
+        }
+      );
+      const json = await response.json();
+      if (!response.ok) throw new Error(json?.error || `Error ${response.status}`);
+      return json;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["email-outbox"] });
       toast.success(data?.message || "Welcome email resent with new temporary password");
     },
-    onError: (err: any) => toast.error(err.message),
+    onError: (err: any) => toast.error(`Failed: ${err.message}`),
   });
 
   const resetPassword = useMutation({
