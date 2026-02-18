@@ -33,7 +33,7 @@ function useAnalyticsData() {
         auditLogsResult,
         trialExpiringResult,
       ] = await Promise.all([
-        supabase.from("dealers").select("id, name, status, created_at, trial_ends_at").order("created_at"),
+        supabase.from("dealers").select("id, name, status, created_at, trial_ends_at, plan_id").order("created_at"),
         supabase.from("dealer_subscriptions").select("*, plans(name, monthly_price)"),
         supabase.from("plans").select("*").order("monthly_price"),
         // Today's activity
@@ -60,12 +60,20 @@ function useAnalyticsData() {
       const activeSubs = subscriptions.filter((s: any) => s.status === "active");
       const trialSubs = subscriptions.filter((s: any) => s.status === "trial");
 
-      const mrr = activeSubs.reduce((sum: number, s: any) => sum + (s.plans?.monthly_price || 0), 0);
+      // MRR based on active dealers and their assigned plan price
+      const activeDealersList = dealers.filter((d: any) => d.status === "active");
+      const plansMap: Record<string, any> = {};
+      plans.forEach((p: any) => { plansMap[p.id] = p; });
+
+      const mrr = activeDealersList.reduce((sum: number, d: any) => {
+        const plan = d.plan_id ? plansMap[d.plan_id] : null;
+        return sum + (plan?.monthly_price || 0);
+      }, 0);
       const arr = mrr * 12;
 
-      // Revenue by plan
+      // Revenue by plan — count active dealers per plan
       const revenueByPlan = plans.map((p: any) => {
-        const count = activeSubs.filter((s: any) => s.plan_id === p.id).length;
+        const count = activeDealersList.filter((d: any) => d.plan_id === p.id).length;
         return { name: p.name, revenue: count * p.monthly_price, dealers: count, price: p.monthly_price };
       }).filter((p: any) => p.dealers > 0 || true);
 
