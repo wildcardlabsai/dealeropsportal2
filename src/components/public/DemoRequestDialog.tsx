@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { User, Building2, Mail, Phone, Send, CheckCircle2 } from "lucide-react";
+import { User, Building2, Mail, Phone, Send, CheckCircle2, Loader2 } from "lucide-react";
 
 interface DemoRequestDialogProps {
   open: boolean;
@@ -24,33 +24,55 @@ export function DemoRequestDialog({ open, onOpenChange }: DemoRequestDialogProps
     const data = new FormData(form);
 
     try {
-      const fullName = data.get("fullName") as string;
-      const email = data.get("email") as string;
-      const dealership = data.get("dealership") as string;
-      const mobile = data.get("mobile") as string;
+      const fullName = (data.get("fullName") as string).trim();
+      const email = (data.get("email") as string).trim();
+      const dealership = (data.get("dealership") as string).trim();
+      const mobile = (data.get("mobile") as string).trim();
 
-      const { error } = await supabase.from("contact_leads").insert({
-        first_name: fullName,
-        last_name: "",
+      // Split name into first/last
+      const nameParts = fullName.split(" ");
+      const firstName = nameParts[0] || fullName;
+      const lastName = nameParts.slice(1).join(" ") || "-";
+
+      // 1. Save contact lead (best-effort, don't block on failure)
+      await supabase.from("contact_leads").insert({
+        first_name: firstName,
+        last_name: lastName,
         email,
-        phone: mobile,
-        dealership_name: dealership,
-        message: `Demo request - Stock size: ${stockSize}`,
+        phone: mobile || null,
+        dealership_name: dealership || null,
+        message: `Demo request - Stock size: ${stockSize || "Not specified"}`,
       });
 
-      if (error) throw error;
-
-      // Send confirmation email (fire and forget)
-      supabase.functions.invoke("send-demo-confirmation", {
-        body: { name: fullName, email, dealership },
+      // 2. Auto-provision trial account via self-signup
+      const { data: signupResult, error: signupError } = await supabase.functions.invoke("self-signup", {
+        body: {
+          dealership_name: dealership || `${firstName}'s Dealership`,
+          first_name: firstName,
+          last_name: lastName,
+          email,
+          password: crypto.randomUUID().slice(0, 12) + "Aa1!",
+        },
       });
 
-      toast.success("Demo request sent! Check your email for confirmation.");
+      if (signupError) throw signupError;
+
+      // Check for application-level errors returned in the response body
+      if (signupResult?.error) {
+        // Duplicate email — show friendly message
+        if (signupResult.error.includes("already exists")) {
+          toast.error("An account with this email already exists. Please log in instead.", { duration: 6000 });
+          return;
+        }
+        throw new Error(signupResult.error);
+      }
+
+      toast.success("Account created! Check your email for your login details.", { duration: 8000 });
       form.reset();
       setStockSize("");
       onOpenChange(false);
-    } catch {
-      toast.error("Something went wrong. Please try again.");
+    } catch (err: any) {
+      toast.error(err?.message || "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -190,12 +212,21 @@ export function DemoRequestDialog({ open, onOpenChange }: DemoRequestDialogProps
                 disabled={loading}
                 className="w-full h-14 text-sm font-bold uppercase tracking-[0.15em] glow"
               >
-                {loading ? "Sending..." : "Authorize 14-Day Trial"}
-                <Send className="ml-2 h-4 w-4" />
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating your account...
+                  </>
+                ) : (
+                  <>
+                    Activate My Free Trial
+                    <Send className="ml-2 h-4 w-4" />
+                  </>
+                )}
               </Button>
 
               <p className="text-[10px] text-muted-foreground text-center uppercase tracking-widest">
-                No credit card required for trial
+                No credit card required · Login details sent instantly
               </p>
             </form>
           </div>
