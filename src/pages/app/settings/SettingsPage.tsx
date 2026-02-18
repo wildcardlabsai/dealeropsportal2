@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Save, User, Palette, Bell, FileText, Shield, Link2, Users, Upload } from "lucide-react";
+import { Save, User, Palette, Bell, FileText, Shield, Link2, Users, Upload, KeyRound, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -67,6 +67,11 @@ export default function SettingsPage() {
   const [dealerForm, setDealerForm] = useState<Record<string, any>>({});
   const [prefForm, setPrefForm] = useState<Record<string, any>>({});
 
+  // Password change state
+  const [pwForm, setPwForm] = useState({ current: "", newPw: "", confirm: "" });
+  const [pwLoading, setPwLoading] = useState(false);
+  const [showPw, setShowPw] = useState({ current: false, newPw: false, confirm: false });
+
   useEffect(() => { if (profile) setProfileForm({ ...profile }); }, [profile]);
   useEffect(() => { if (dealer) setDealerForm({ ...dealer }); }, [dealer]);
   useEffect(() => {
@@ -122,6 +127,31 @@ export default function SettingsPage() {
     toast.success("Logo uploaded – save to apply");
   };
 
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (pwForm.newPw.length < 8) { toast.error("New password must be at least 8 characters"); return; }
+    if (pwForm.newPw !== pwForm.confirm) { toast.error("Passwords do not match"); return; }
+    setPwLoading(true);
+    try {
+      // Verify current password by re-authenticating
+      if (user?.email) {
+        const { error: signInErr } = await supabase.auth.signInWithPassword({ email: user.email, password: pwForm.current });
+        if (signInErr) { toast.error("Current password is incorrect"); setPwLoading(false); return; }
+      }
+      const { error } = await supabase.auth.updateUser({ password: pwForm.newPw });
+      if (error) throw error;
+      toast.success("Password updated successfully");
+      setPwForm({ current: "", newPw: "", confirm: "" });
+      await supabase.from("audit_logs").insert({
+        dealer_id: dealerId, actor_user_id: user?.id, action_type: "PASSWORD_CHANGED",
+        entity_type: "user", entity_id: user?.id, summary: "User changed their password",
+      });
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update password");
+    }
+    setPwLoading(false);
+  };
+
   if (isLoading) return <div className="h-40 rounded-xl bg-muted/30 animate-pulse" />;
 
   return (
@@ -165,6 +195,67 @@ export default function SettingsPage() {
             <Button onClick={() => updateProfile.mutate()} disabled={updateProfile.isPending}>
               <Save className="h-4 w-4 mr-2" /> {updateProfile.isPending ? "Saving..." : "Save Profile"}
             </Button>
+
+            {/* ── Change Password ── */}
+            <form onSubmit={handlePasswordChange} className="p-6 rounded-xl border border-border/50 bg-card/50 space-y-4">
+              <div className="flex items-center gap-2 mb-1">
+                <KeyRound className="h-4 w-4 text-muted-foreground" />
+                <h3 className="text-sm font-semibold">Change Password</h3>
+              </div>
+              <div>
+                <Label className="text-xs">Current Password</Label>
+                <div className="relative mt-1">
+                  <input
+                    type={showPw.current ? "text" : "password"}
+                    value={pwForm.current}
+                    onChange={e => setPwForm(f => ({ ...f, current: e.target.value }))}
+                    required
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring pr-9"
+                  />
+                  <button type="button" onClick={() => setShowPw(s => ({ ...s, current: !s.current }))} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                    {showPw.current ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-xs">New Password</Label>
+                  <div className="relative mt-1">
+                    <input
+                      type={showPw.newPw ? "text" : "password"}
+                      value={pwForm.newPw}
+                      onChange={e => setPwForm(f => ({ ...f, newPw: e.target.value }))}
+                      required
+                      minLength={8}
+                      placeholder="Min. 8 characters"
+                      className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring pr-9"
+                    />
+                    <button type="button" onClick={() => setShowPw(s => ({ ...s, newPw: !s.newPw }))} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                      {showPw.newPw ? <EyeOff size={15} /> : <Eye size={15} />}
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-xs">Confirm New Password</Label>
+                  <div className="relative mt-1">
+                    <input
+                      type={showPw.confirm ? "text" : "password"}
+                      value={pwForm.confirm}
+                      onChange={e => setPwForm(f => ({ ...f, confirm: e.target.value }))}
+                      required
+                      minLength={8}
+                      className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring pr-9"
+                    />
+                    <button type="button" onClick={() => setShowPw(s => ({ ...s, confirm: !s.confirm }))} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                      {showPw.confirm ? <EyeOff size={15} /> : <Eye size={15} />}
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <Button type="submit" variant="outline" disabled={pwLoading}>
+                <KeyRound className="h-4 w-4 mr-2" /> {pwLoading ? "Updating..." : "Update Password"}
+              </Button>
+            </form>
           </div>
         </TabsContent>
 
