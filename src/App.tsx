@@ -28,6 +28,7 @@ import SuperAdminAnnouncements from "./pages/app/admin/SuperAdminAnnouncements";
 import SuperAdminFeatureFlags from "./pages/app/admin/SuperAdminFeatureFlags";
 import SuperAdminAuditTrail from "./pages/app/admin/SuperAdminAuditTrail";
 import SuperAdminLeads from "./pages/app/admin/SuperAdminLeads";
+import SuperAdminAnalytics from "./pages/app/admin/SuperAdminAnalytics";
 import TeamManagement from "./pages/app/team/TeamManagement";
 import KPIDashboard from "./pages/app/kpis/KPIDashboard";
 import StaffKPIProfile from "./pages/app/kpis/StaffKPIProfile";
@@ -187,6 +188,7 @@ const App = () => (
               <Route path="admin/audit" element={<SuperAdminAuditTrail />} />
               <Route path="admin/billing" element={<SuperAdminBilling />} />
               <Route path="admin/support" element={<SuperAdminSupport />} />
+              <Route path="admin/analytics" element={<SuperAdminAnalytics />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
