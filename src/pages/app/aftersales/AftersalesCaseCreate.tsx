@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { HelpPopover } from "@/components/HelpPopover";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -88,7 +89,20 @@ export default function AftersalesCaseCreate() {
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
-          <h1 className="text-2xl font-bold">New Aftersales Case</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold">New Aftersales Case</h1>
+            <HelpPopover
+              title="Aftersales Cases"
+              articleId="aftersales-overview"
+              body={
+                <span>
+                  Use Aftersales to log post-sale issues — complaints, warranty claims, and faults.<br /><br />
+                  <strong>SLA:</strong> Default first response target is 72 hours (configurable in Settings).<br /><br />
+                  <strong>Tip:</strong> If the customer is asserting rights under the Consumer Rights Act, escalate to <strong>CRA Shield</strong> from the case detail page instead.
+                </span>
+              }
+            />
+          </div>
           <p className="text-sm text-muted-foreground">Log a complaint, repair, or warranty issue</p>
         </div>
       </div>

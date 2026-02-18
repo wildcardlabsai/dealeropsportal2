@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Shield, FileText, Users, Clock, AlertTriangle, Clipboard, BookOpen, Bell, ScrollText } from "lucide-react";
+import { HelpPopover } from "@/components/HelpPopover";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -40,6 +41,21 @@ export default function ComplianceCentre() {
       <div className="mb-6">
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <Shield className="h-6 w-6 text-primary" /> Compliance Centre
+          <HelpPopover
+            title="Compliance Centre"
+            articleId="compliance-overview"
+            body={
+              <span>
+                Your hub for UK GDPR and FCA compliance.<br /><br />
+                <strong>Policies</strong> — store &amp; version compliance documents<br />
+                <strong>Complaints</strong> — track FCA-regulated complaints<br />
+                <strong>DSR</strong> — manage Subject Access Requests (30-day deadline)<br />
+                <strong>Consents</strong> — view customer GDPR consents<br />
+                <strong>Incidents</strong> — log data breaches for ICO reporting<br />
+                <strong>Retention</strong> — review records past your retention period
+              </span>
+            }
+          />
         </h1>
         <p className="text-sm text-muted-foreground">GDPR, complaints, data retention & audit management</p>
       </div>

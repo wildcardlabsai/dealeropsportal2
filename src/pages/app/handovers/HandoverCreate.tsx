@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { HelpPopover } from "@/components/HelpPopover";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -83,7 +84,20 @@ export default function HandoverCreate() {
       <div className="flex items-center gap-3 mb-6">
         <Button variant="ghost" size="icon" onClick={() => navigate("/app/handovers")}><ArrowLeft className="h-4 w-4" /></Button>
         <div>
-          <h1 className="text-2xl font-bold">New Handover</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold">New Handover</h1>
+            <HelpPopover
+              title="Vehicle Handovers"
+              articleId="handovers-overview"
+              body={
+                <span>
+                  A completed handover documents that the vehicle was delivered in agreed condition.<br /><br />
+                  <strong>Customer signature</strong> is the strongest evidence in any future CRA or aftersales claim.<br /><br />
+                  <strong>No signature?</strong> Use "Complete (No Sig)" for internal or remote handovers — the record is still kept.
+                </span>
+              }
+            />
+          </div>
           <p className="text-sm text-muted-foreground">Create a vehicle handover pack</p>
         </div>
       </div>

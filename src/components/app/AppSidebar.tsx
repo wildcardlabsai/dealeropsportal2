@@ -2,11 +2,11 @@ import {
   LayoutDashboard, Users, Car, FileText, Shield, ShieldAlert, ShieldCheck, Wrench, CarFront,
   Target, ClipboardCheck, Star, FolderOpen, BarChart3, MessageSquare,
   CreditCard, Settings, ScrollText, Search, LogOut, Building2, UsersRound, TrendingUp, Gauge, PackageCheck,
-  HeartPulse, Megaphone, ToggleLeft, FileSearch, Inbox
+  HeartPulse, Megaphone, ToggleLeft, FileSearch, Inbox, BookOpen
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent,
   SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
@@ -130,7 +130,14 @@ export function AppSidebar() {
         {isSuperAdmin && <NavGroup label="Super Admin" items={superAdminNav} />}
       </SidebarContent>
 
-      <SidebarFooter className="p-2 border-t border-sidebar-border">
+      <SidebarFooter className="p-2 border-t border-sidebar-border space-y-1">
+        <Link
+          to="/help"
+          className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-sidebar-accent rounded-md transition-colors"
+        >
+          <BookOpen className="h-4 w-4 shrink-0" />
+          {!collapsed && <span>Help & Knowledge Base</span>}
+        </Link>
         <Button
           variant="ghost"
           size="sm"

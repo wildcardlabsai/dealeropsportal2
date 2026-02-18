@@ -71,6 +71,7 @@ import ComplianceCentre from "./pages/app/compliance/ComplianceCentre";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import NotFound from "./pages/NotFound";
+import HelpPage from "./pages/HelpPage";
 
 const queryClient = new QueryClient();
 
@@ -93,6 +94,7 @@ const App = () => (
               <Route path="/contact" element={<Contact />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/terms" element={<TermsOfService />} />
+              <Route path="/help" element={<HelpPage />} />
             </Route>
 
             <Route path="/login" element={<PublicLayout />}>

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, Shield, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { HelpPopover } from "@/components/HelpPopover";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -176,6 +177,19 @@ export default function CRAShieldCreate() {
 
       <h1 className="text-2xl font-bold mb-6 flex items-center gap-2">
         <Shield className="h-6 w-6 text-primary" /> New CRA Case
+        <HelpPopover
+          title="What is CRA Shield?"
+          articleId="cra-overview"
+          body={
+            <span>
+              CRA Shield helps you assess claims under the <strong>Consumer Rights Act 2015</strong>. Enter the sale details and evidence available — it will calculate the customer's legal position and generate appropriate responses.<br /><br />
+              <strong>Time windows:</strong><br />
+              • 0–30 days: Customer can reject and claim full refund<br />
+              • 30 days–6 months: Dealer gets one chance to repair<br />
+              • After 6 months: Burden shifts to the customer
+            </span>
+          }
+        />
       </h1>
 
       <div className="space-y-6">
