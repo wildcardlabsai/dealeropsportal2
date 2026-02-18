@@ -62,12 +62,19 @@ Deno.serve(async (req) => {
         .single();
 
       let resendPassword: string | null = null;
+      let toEmail = dealer.email || "";
+
       if (adminRole) {
         resendPassword = crypto.randomUUID().slice(0, 16) + "Aa1!";
         await supabaseAdmin.auth.admin.updateUserById(adminRole.user_id, { password: resendPassword });
+        // Use the admin's actual auth email (their login email), not the dealer business email
+        const { data: adminAuthUser } = await supabaseAdmin.auth.admin.getUserById(adminRole.user_id);
+        if (adminAuthUser?.user?.email) {
+          toEmail = adminAuthUser.user.email;
+        }
       }
 
-      const toEmail = dealer.email || "";
+      if (!toEmail) throw new Error("No email address found for this dealer's admin user");
       const emailBody = buildWelcomeEmail(dealer.name, toEmail, "dealerops.uk/login", resendPassword, false, null);
 
       let emailStatus = "simulated";
