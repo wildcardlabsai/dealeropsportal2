@@ -1,4 +1,5 @@
 import { Outlet, Navigate, Link } from "react-router-dom";
+import { DealerAIChat } from "./DealerAIChat";
 import { useAuth } from "@/contexts/AuthContext";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
@@ -105,6 +106,7 @@ export function AppLayout() {
           </main>
         </div>
       </div>
+      <DealerAIChat />
     </SidebarProvider>
   );
 }

@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.onboard-dealer]
 verify_jwt = false
+
+[functions.dealer-ai-chat]
+verify_jwt = false
