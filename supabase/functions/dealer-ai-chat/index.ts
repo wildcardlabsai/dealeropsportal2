@@ -81,7 +81,7 @@ serve(async (req) => {
     ] = await Promise.all([
       supabase.from("dealers").select("name, status, trial_ends_at").eq("id", dealerId).single(),
 
-      supabase.from("leads").select("id, first_name, last_name, email, phone, stage, source, vehicle_interest, created_at, updated_at, notes, lead_number")
+      supabase.from("leads").select("id, first_name, last_name, email, phone, stage, status, source, vehicle_interest_text, created_at, updated_at, notes, lead_number")
         .eq("dealer_id", dealerId).order("created_at", { ascending: false }).limit(200),
 
       supabase.from("customers").select("id, first_name, last_name, email, phone, city, postcode, created_at, consent_marketing")
@@ -90,7 +90,7 @@ serve(async (req) => {
       supabase.from("vehicles").select("id, vrm, make, model, year, colour, mileage, fuel_type, transmission, status, purchase_price, sale_price, stock_number, created_at, first_registered_date")
         .eq("dealer_id", dealerId).order("created_at", { ascending: false }).limit(200),
 
-      supabase.from("invoices").select("id, invoice_number, status, subtotal, vat_amount, total_amount, due_date, paid_at, created_at, customer_id, vehicle_id")
+      supabase.from("invoices").select("id, invoice_number, status, subtotal, vat_amount, total, due_date, paid_at, created_at, customer_id, vehicle_id, sale_type")
         .eq("dealer_id", dealerId).order("created_at", { ascending: false }).limit(200),
 
       supabase.from("warranties").select("id, warranty_number, status, provider, coverage_type, start_date, end_date, cost, created_at, vehicle_id, customer_id")
@@ -111,7 +111,7 @@ serve(async (req) => {
       supabase.from("data_subject_requests").select("id, request_number, request_type, status, requester_name, received_at, due_at, created_at")
         .eq("dealer_id", dealerId).order("created_at", { ascending: false }).limit(100),
 
-      supabase.from("handovers").select("id, handover_number, status, scheduled_date, completed_at, created_at, vehicle_id, customer_id")
+      supabase.from("handovers").select("id, handover_number, status, scheduled_delivery_at, delivered_at, created_at, vehicle_id, customer_id")
         .eq("dealer_id", dealerId).order("created_at", { ascending: false }).limit(200),
 
       supabase.from("courtesy_cars").select("id, vrm, make, model, status, current_mileage, created_at")
@@ -120,7 +120,7 @@ serve(async (req) => {
       supabase.from("courtesy_loans").select("id, status, customer_name, loan_start_at, expected_return_at, actual_return_at, loan_reason, created_at")
         .eq("dealer_id", dealerId).order("created_at", { ascending: false }).limit(100),
 
-      supabase.from("vehicle_checks").select("id, check_type, status, result, mileage, created_at, vehicle_id")
+      supabase.from("vehicle_checks").select("id, vrm, status, dvla_status, dvsa_status, created_at")
         .eq("dealer_id", dealerId).order("created_at", { ascending: false }).limit(100),
 
       supabase.from("support_tickets").select("id, ticket_number, subject, status, priority, created_at, resolved_at")
@@ -155,9 +155,9 @@ serve(async (req) => {
 
     // Compute summaries
     const now = new Date();
-    const overdueTasks = tasks.filter(t => t.status === "open" && t.due_date && new Date(t.due_date) < now).length;
-    const openLeads = leads.filter(l => ["new", "contacted", "qualified"].includes(l.stage)).length;
-    const soldLeads = leads.filter(l => l.stage === "sold");
+    const overdueTasks = tasks.filter(t => ["todo", "in_progress"].includes(t.status) && t.due_date && new Date(t.due_date) < now).length;
+    const openLeads = leads.filter(l => ["new", "contacted", "viewing", "negotiating"].includes(l.stage ?? l.status)).length;
+    const soldLeads = leads.filter(l => (l.stage ?? l.status) === "sold");
     const activeWarranties = warranties.filter(w => w.status === "active").length;
     const openAftersalesCases = aftersalesCases.filter(c => !["closed", "resolved"].includes(c.status)).length;
     const openComplaints = complaints.filter(c => !["resolved", "closed"].includes(c.status)).length;
@@ -175,7 +175,7 @@ serve(async (req) => {
     let totalRevenue = 0;
     let paidRevenue = 0;
     for (const inv of invoices) {
-      const amt = inv.total_amount ?? 0;
+      const amt = inv.total ?? 0;
       totalRevenue += amt;
       if (inv.status === "paid") {
         paidRevenue += amt;
@@ -228,7 +228,7 @@ Data snapshot as of: ${new Date().toLocaleString("en-GB")}
 - Support Tickets: ${supportTickets.length}
 
 === LEADS DATA (${leads.length} records) ===
-${JSON.stringify(leads.map(l => ({ name: `${l.first_name} ${l.last_name}`, stage: l.stage, source: l.source, vehicle_interest: l.vehicle_interest, created: l.created_at?.slice(0, 10), lead_number: l.lead_number })))}
+${JSON.stringify(leads.map(l => ({ name: `${l.first_name} ${l.last_name}`, stage: l.stage, status: l.status, source: l.source, vehicle_interest: l.vehicle_interest_text, created: l.created_at?.slice(0, 10), lead_number: l.lead_number })))}
 
 === CUSTOMERS DATA (${customers.length} records) ===
 ${JSON.stringify(customers.map(c => ({ name: `${c.first_name} ${c.last_name}`, email: c.email, phone: c.phone, city: c.city, created: c.created_at?.slice(0, 10) })))}
@@ -237,7 +237,7 @@ ${JSON.stringify(customers.map(c => ({ name: `${c.first_name} ${c.last_name}`, e
 ${JSON.stringify(vehicles.map(v => ({ vrm: v.vrm, make: v.make, model: v.model, year: v.year, mileage: v.mileage, fuel: v.fuel_type, status: v.status, purchase_price: v.purchase_price, sale_price: v.sale_price, created: v.created_at?.slice(0, 10) })))}
 
 === INVOICES DATA (${invoices.length} records) ===
-${JSON.stringify(invoices.map(i => ({ number: i.invoice_number, status: i.status, total: i.total_amount, vat: i.vat_amount, due: i.due_date, paid: i.paid_at?.slice(0, 10), created: i.created_at?.slice(0, 10) })))}
+${JSON.stringify(invoices.map(i => ({ number: i.invoice_number, status: i.status, total: i.total, vat: i.vat_amount, due: i.due_date, paid: i.paid_at?.slice(0, 10), created: i.created_at?.slice(0, 10), sale_type: i.sale_type })))}
 
 === WARRANTIES DATA (${warranties.length} records) ===
 ${JSON.stringify(warranties.map(w => ({ number: w.warranty_number, status: w.status, provider: w.provider, coverage: w.coverage_type, start: w.start_date, end: w.end_date, cost: w.cost })))}
@@ -255,7 +255,7 @@ ${JSON.stringify(aftersales.map(a => ({ subject: a.subject, status: a.status, ty
 ${JSON.stringify(complaints.map(c => ({ ref: c.complaint_ref, status: c.status, category: c.category, channel: c.channel, customer: c.customer_name, received: c.received_at?.slice(0, 10), resolved: c.resolution_at?.slice(0, 10), goodwill: c.goodwill_amount })))}
 
 === HANDOVERS (${handovers.length} records) ===
-${JSON.stringify(handovers.map(h => ({ number: h.handover_number, status: h.status, scheduled: h.scheduled_date, completed: h.completed_at?.slice(0, 10) })))}
+${JSON.stringify(handovers.map(h => ({ number: h.handover_number, status: h.status, scheduled: h.scheduled_delivery_at?.slice(0, 10), delivered: h.delivered_at?.slice(0, 10) })))}
 
 === COURTESY CARS (${courtesyCars.length} records) ===
 ${JSON.stringify(courtesyCars.map(c => ({ vrm: c.vrm, make: c.make, model: c.model, status: c.status, mileage: c.current_mileage })))}
