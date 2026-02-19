@@ -296,7 +296,20 @@ export default function Dashboard() {
   const { data: mom } = useMonthComparison();
   const navigate = useNavigate();
 
-  const firstName = user?.user_metadata?.first_name || user?.email?.split("@")[0] || "";
+  const { data: profile } = useQuery({
+    queryKey: ["dashboard-profile", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("first_name")
+        .eq("id", user!.id)
+        .single();
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
+  const firstName = profile?.first_name || user?.user_metadata?.first_name || "";
 
   const cards = [
     { label: "Customers", value: stats?.customers ?? 0, icon: Users, mom: mom ? { current: mom.customersThis, previous: mom.customersLast } : null },
