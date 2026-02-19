@@ -16,7 +16,7 @@ Deno.serve(async (req) => {
     );
 
     const DEMO_EMAIL = "demo@dealerops.uk";
-    const DEMO_PASSWORD = "Demo123";
+    const DEMO_PASSWORD = "Demo123456";
     const ELITE_PLAN_ID = "c5df6e93-e933-421a-865c-6317558c567c";
 
     const now = new Date();
