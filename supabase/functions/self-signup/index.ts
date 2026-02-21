@@ -210,7 +210,7 @@ Deno.serve(async (req) => {
 </html>`;
 
       try {
-        await fetch("https://api.resend.com/emails", {
+        const emailRes = await fetch("https://api.resend.com/emails", {
           method: "POST",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${RESEND_API_KEY}` },
           body: JSON.stringify({
@@ -220,7 +220,13 @@ Deno.serve(async (req) => {
             html: welcomeHtml,
           }),
         });
-        logStep("Welcome email sent", { email });
+        const emailResBody = await emailRes.json();
+        logStep("Resend API response", { status: emailRes.status, body: emailResBody });
+        if (!emailRes.ok) {
+          logStep("Welcome email rejected by Resend", { status: emailRes.status, error: emailResBody });
+        } else {
+          logStep("Welcome email sent", { email });
+        }
       } catch (emailErr: any) {
         logStep("Welcome email failed (non-blocking)", { error: emailErr.message });
       }
