@@ -214,7 +214,7 @@ Deno.serve(async (req) => {
           method: "POST",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${RESEND_API_KEY}` },
           body: JSON.stringify({
-            from: "DealerOps <onboarding@resend.dev>",
+            from: "DealerOps <noreply@dealerops.uk>",
             to: [email],
             subject: `Welcome to DealerOps – Your 14-day trial is active!`,
             html: welcomeHtml,
