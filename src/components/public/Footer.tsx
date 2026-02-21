@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import doLogo from "@/assets/dologo.png";
 
 export function Footer() {
   return (
@@ -7,9 +8,7 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
             <Link to="/" className="flex items-center gap-2 mb-4">
-              <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-sm">D</span>
-              </div>
+              <img src={doLogo} alt="DealerOps logo" className="h-8 w-8 object-contain" />
               <span className="text-lg font-bold text-foreground">
                 Dealer<span className="text-primary">Ops</span>
               </span>

@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Eye, EyeOff, ArrowLeft, Car, Shield, BarChart3, CheckCircle2 } from "lucide-react";
+import doLogo from "@/assets/dologo.png";
 
 type Mode = "login" | "signup" | "reset";
 
@@ -104,9 +105,7 @@ export default function Login() {
         
         <div className="relative z-10 p-12 max-w-md">
           <Link to="/" className="inline-flex items-center gap-2 mb-10">
-            <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-lg">D</span>
-            </div>
+            <img src={doLogo} alt="DealerOps logo" className="h-12 w-12 object-contain" />
             <span className="text-2xl font-bold text-foreground">
               Dealer<span className="text-primary">Ops</span>
             </span>
@@ -151,9 +150,7 @@ export default function Login() {
         >
           <div className="text-center mb-8">
             <Link to="/" className="inline-flex items-center gap-2 mb-6 lg:hidden">
-              <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-bold">D</span>
-              </div>
+              <img src={doLogo} alt="DealerOps logo" className="h-10 w-10 object-contain" />
             </Link>
             <h1 className="text-2xl font-bold">{titles[mode].title}</h1>
             <p className="text-sm text-muted-foreground mt-1">{titles[mode].subtitle}</p>

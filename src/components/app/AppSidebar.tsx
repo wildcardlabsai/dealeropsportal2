@@ -5,6 +5,7 @@ import {
   HeartPulse, Megaphone, ToggleLeft, FileSearch, Inbox, BookOpen, LineChart,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
+import doLogo from "@/assets/dologo.png";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import {
@@ -114,9 +115,7 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <div className="h-16 flex items-center px-4 border-b border-sidebar-border">
-        <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center shrink-0">
-          <span className="text-primary-foreground font-bold text-sm">D</span>
-        </div>
+        <img src={doLogo} alt="DealerOps logo" className="h-8 w-8 object-contain shrink-0" />
         {!collapsed && (
           <span className="ml-2 text-sm font-bold text-sidebar-foreground">
             Dealer<span className="text-primary">Ops</span>

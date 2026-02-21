@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
+import doLogo from "@/assets/dologo.png";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -20,9 +21,7 @@ export function Navbar() {
     <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/30">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <Link to="/" className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-sm">D</span>
-          </div>
+          <img src={doLogo} alt="DealerOps logo" className="h-8 w-8 object-contain" />
           <span className="text-lg font-bold text-foreground">
             Dealer<span className="text-primary">Ops</span>
           </span>
