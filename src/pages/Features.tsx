@@ -7,6 +7,7 @@ import {
   ArrowRight, CheckCircle2, ImageIcon, ShieldAlert, PackageCheck, Target,
   FolderOpen, TrendingUp, UsersRound, ScrollText, LayoutDashboard, Bot
 } from "lucide-react";
+import dashboardPreview from "@/assets/dashboard-preview.png";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -138,11 +139,14 @@ export default function Features() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.3 }}
-            className="max-w-4xl mx-auto mt-4"
+            className="max-w-5xl mx-auto mt-4"
           >
-            <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/60 bg-muted/20 p-12 min-h-[320px] text-muted-foreground">
-              <ImageIcon className="h-12 w-12 mb-3 opacity-40" />
-              <span className="text-sm text-center">Product screenshot — Dashboard overview</span>
+            <div className="rounded-2xl border border-border/40 bg-card/30 overflow-hidden shadow-2xl shadow-primary/10">
+              <img
+                src={dashboardPreview}
+                alt="DealerOps dashboard showing revenue, customers, vehicles, and leads overview"
+                className="w-full h-auto"
+              />
             </div>
           </motion.div>
         </div>
