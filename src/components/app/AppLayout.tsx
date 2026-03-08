@@ -7,7 +7,6 @@ import { Bell, AlertTriangle, CreditCard, Command } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CommandPalette } from "./CommandPalette";
 import { AppBreadcrumb } from "./AppBreadcrumb";
-import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserDealerId } from "@/hooks/useCustomers";
