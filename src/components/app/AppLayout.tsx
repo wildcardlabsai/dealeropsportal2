@@ -1,9 +1,9 @@
-import { Outlet, Navigate, Link } from "react-router-dom";
+import { Outlet, Navigate, Link, useLocation } from "react-router-dom";
 import { DealerAIChat } from "./DealerAIChat";
 import { useAuth } from "@/contexts/AuthContext";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
-import { Bell, AlertTriangle, CreditCard, Command } from "lucide-react";
+import { Bell, AlertTriangle, CreditCard, Command, LayoutDashboard, Users, Car, Target, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CommandPalette } from "./CommandPalette";
 import { AppBreadcrumb } from "./AppBreadcrumb";

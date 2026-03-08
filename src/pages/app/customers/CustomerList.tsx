@@ -16,10 +16,30 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 
+type SortKey = "name" | "city" | "created_at";
+type SortDir = "asc" | "desc";
+
 export default function CustomerList() {
   const [search, setSearch] = useState("");
+  const [sortKey, setSortKey] = useState<SortKey>("name");
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
   const { data: customers, isLoading } = useCustomers(search);
-  const { page, setPage, totalPages, totalItems, paginatedItems, pageSize } = usePagination(customers);
+
+  const sorted = [...(customers || [])].sort((a, b) => {
+    let cmp = 0;
+    if (sortKey === "name") cmp = `${a.first_name} ${a.last_name}`.localeCompare(`${b.first_name} ${b.last_name}`);
+    else if (sortKey === "city") cmp = (a.city || "").localeCompare(b.city || "");
+    else cmp = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+    return sortDir === "asc" ? cmp : -cmp;
+  });
+
+  const { page, setPage, totalPages, totalItems, paginatedItems, pageSize } = usePagination(sorted);
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) setSortDir(d => d === "asc" ? "desc" : "asc");
+    else { setSortKey(key); setSortDir("asc"); }
+  };
+  const sortIcon = (key: SortKey) => sortKey === key ? (sortDir === "asc" ? " ↑" : " ↓") : "";
   const softDelete = useSoftDeleteCustomer();
   const navigate = useNavigate();
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -80,9 +100,9 @@ export default function CustomerList() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-border/50">
-                  <th className="text-left text-xs font-medium text-muted-foreground p-3">Name</th>
+                  <th className="text-left text-xs font-medium text-muted-foreground p-3 cursor-pointer hover:text-foreground select-none" onClick={() => toggleSort("name")}>Name{sortIcon("name")}</th>
                   <th className="text-left text-xs font-medium text-muted-foreground p-3 hidden md:table-cell">Contact</th>
-                  <th className="text-left text-xs font-medium text-muted-foreground p-3 hidden lg:table-cell">Location</th>
+                  <th className="text-left text-xs font-medium text-muted-foreground p-3 hidden lg:table-cell cursor-pointer hover:text-foreground select-none" onClick={() => toggleSort("city")}>Location{sortIcon("city")}</th>
                   <th className="text-left text-xs font-medium text-muted-foreground p-3 hidden lg:table-cell">Marketing</th>
                   <th className="text-right text-xs font-medium text-muted-foreground p-3 w-10"></th>
                 </tr>

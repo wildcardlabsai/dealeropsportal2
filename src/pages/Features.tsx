@@ -17,11 +17,41 @@ const fadeUp = {
   }),
 };
 
-function ImagePlaceholder({ label }: { label: string }) {
+function FeatureMockup({ label, icon: Icon }: { label: string; icon?: any }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/60 bg-muted/20 p-8 min-h-[280px] text-muted-foreground">
-      <ImageIcon className="h-10 w-10 mb-3 opacity-40" />
-      <span className="text-xs text-center max-w-[200px] leading-relaxed">{label}</span>
+    <div className="relative rounded-2xl border border-border/40 bg-gradient-to-br from-card/80 via-muted/30 to-card/60 p-6 min-h-[280px] overflow-hidden">
+      {/* Simulated window chrome */}
+      <div className="flex items-center gap-1.5 mb-4">
+        <div className="h-2.5 w-2.5 rounded-full bg-destructive/40" />
+        <div className="h-2.5 w-2.5 rounded-full bg-warning/40" />
+        <div className="h-2.5 w-2.5 rounded-full bg-success/40" />
+        <div className="ml-3 h-5 flex-1 rounded bg-muted/40" />
+      </div>
+      {/* Simulated content */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-3">
+          {Icon && <div className="h-8 w-8 rounded-lg bg-primary/15 flex items-center justify-center"><Icon className="h-4 w-4 text-primary" /></div>}
+          <div className="h-4 w-32 rounded bg-foreground/10" />
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="h-16 rounded-lg bg-primary/5 border border-primary/10 p-2">
+              <div className="h-2 w-8 rounded bg-primary/20 mb-2" />
+              <div className="h-4 w-12 rounded bg-primary/15" />
+            </div>
+          ))}
+        </div>
+        <div className="h-24 rounded-lg bg-muted/20 border border-border/30" />
+        <div className="flex gap-2">
+          <div className="h-3 flex-1 rounded bg-foreground/5" />
+          <div className="h-3 w-20 rounded bg-foreground/5" />
+        </div>
+        <div className="h-3 w-3/4 rounded bg-foreground/5" />
+      </div>
+      {/* Label overlay */}
+      <div className="absolute bottom-3 right-3 px-2.5 py-1 rounded-lg bg-background/80 backdrop-blur-sm border border-border/50">
+        <span className="text-[10px] text-muted-foreground font-medium">{label}</span>
+      </div>
     </div>
   );
 }
@@ -107,6 +137,8 @@ const categories = [
   },
 ];
 
+const categoryAnchors = categories.map(c => ({ id: c.title.toLowerCase().replace(/[^a-z]+/g, "-"), title: c.title }));
+
 export default function Features() {
   return (
     <div>
@@ -129,12 +161,20 @@ export default function Features() {
               Every tool your dealership{" "}
               <span className="text-gradient">needs</span>
             </h1>
-            <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-8">
+            <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-6">
               Comprehensive modules designed specifically for UK independent car dealers. No bolt-ons, no integrations to manage — it all works together.
             </p>
+
+            {/* Jump nav */}
+            <div className="flex flex-wrap items-center justify-center gap-2 mb-8">
+              {categoryAnchors.map(a => (
+                <a key={a.id} href={`#${a.id}`} className="px-3 py-1.5 rounded-full border border-border/50 bg-card/30 text-xs text-muted-foreground hover:text-primary hover:border-primary/30 transition-colors">
+                  {a.title}
+                </a>
+              ))}
+            </div>
           </motion.div>
 
-          {/* Hero placeholder image */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -190,7 +230,7 @@ export default function Features() {
                   </ul>
                 </div>
                 <div className="px-7 pb-7 pt-2">
-                  <ImagePlaceholder label={f.placeholder} />
+                  <FeatureMockup label={f.placeholder} icon={f.icon} />
                 </div>
               </motion.div>
             ))}
@@ -201,8 +241,9 @@ export default function Features() {
       {/* Categorised Features — alternating layout with image placeholders */}
       {categories.map((cat, catIdx) => {
         const isEven = catIdx % 2 === 0;
+        const anchorId = cat.title.toLowerCase().replace(/[^a-z]+/g, "-");
         return (
-          <section key={cat.title} className={`py-14 border-t border-border/30 ${catIdx % 2 === 1 ? 'bg-muted/10' : ''}`}>
+          <section key={cat.title} id={anchorId} className={`py-14 border-t border-border/30 scroll-mt-20 ${catIdx % 2 === 1 ? 'bg-muted/10' : ''}`}>
             <div className="container mx-auto px-4">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -246,7 +287,7 @@ export default function Features() {
                   viewport={{ once: true }}
                   className={`${!isEven ? 'lg:order-1' : ''}`}
                 >
-                  <ImagePlaceholder label={cat.placeholder} />
+                  <FeatureMockup label={cat.placeholder} icon={cat.features[0]?.icon} />
                 </motion.div>
               </div>
             </div>

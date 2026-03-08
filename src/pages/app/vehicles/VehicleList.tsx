@@ -29,12 +29,33 @@ const statusLabels: Record<string, string> = {
   returned: "Returned",
 };
 
+type VSortKey = "vrm" | "vehicle" | "price" | "days";
+type SortDir = "asc" | "desc";
+
 export default function VehicleList() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [sortKey, setSortKey] = useState<VSortKey>("days");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
   const { data: vehicles, isLoading } = useVehicles(search, statusFilter);
-  const { page, setPage, totalPages, totalItems, paginatedItems, pageSize } = usePagination(vehicles);
+
+  const sorted = [...(vehicles || [])].sort((a, b) => {
+    let cmp = 0;
+    if (sortKey === "vrm") cmp = (a.vrm || "").localeCompare(b.vrm || "");
+    else if (sortKey === "vehicle") cmp = `${a.make} ${a.model}`.localeCompare(`${b.make} ${b.model}`);
+    else if (sortKey === "price") cmp = (Number(a.advertised_price) || 0) - (Number(b.advertised_price) || 0);
+    else cmp = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+    return sortDir === "asc" ? cmp : -cmp;
+  });
+
+  const { page, setPage, totalPages, totalItems, paginatedItems, pageSize } = usePagination(sorted);
   const navigate = useNavigate();
+
+  const toggleSort = (key: VSortKey) => {
+    if (sortKey === key) setSortDir(d => d === "asc" ? "desc" : "asc");
+    else { setSortKey(key); setSortDir("asc"); }
+  };
+  const sortIcon = (key: VSortKey) => sortKey === key ? (sortDir === "asc" ? " ↑" : " ↓") : "";
 
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
@@ -89,12 +110,12 @@ export default function VehicleList() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-border/50">
-                 <th className="text-left text-xs font-medium text-muted-foreground p-3">VRM</th>
-                  <th className="text-left text-xs font-medium text-muted-foreground p-3">Vehicle</th>
+                 <th className="text-left text-xs font-medium text-muted-foreground p-3 cursor-pointer hover:text-foreground select-none" onClick={() => toggleSort("vrm")}>VRM{sortIcon("vrm")}</th>
+                  <th className="text-left text-xs font-medium text-muted-foreground p-3 cursor-pointer hover:text-foreground select-none" onClick={() => toggleSort("vehicle")}>Vehicle{sortIcon("vehicle")}</th>
                   <th className="text-left text-xs font-medium text-muted-foreground p-3 hidden md:table-cell">Year</th>
                   <th className="text-left text-xs font-medium text-muted-foreground p-3 hidden md:table-cell">Mileage</th>
-                  <th className="text-left text-xs font-medium text-muted-foreground p-3 hidden lg:table-cell">Price</th>
-                  <th className="text-left text-xs font-medium text-muted-foreground p-3 hidden lg:table-cell">Days in Stock</th>
+                  <th className="text-left text-xs font-medium text-muted-foreground p-3 hidden lg:table-cell cursor-pointer hover:text-foreground select-none" onClick={() => toggleSort("price")}>Price{sortIcon("price")}</th>
+                  <th className="text-left text-xs font-medium text-muted-foreground p-3 hidden lg:table-cell cursor-pointer hover:text-foreground select-none" onClick={() => toggleSort("days")}>Days in Stock{sortIcon("days")}</th>
                   <th className="text-left text-xs font-medium text-muted-foreground p-3">Status</th>
                   <th className="text-right text-xs font-medium text-muted-foreground p-3 w-10"></th>
                 </tr>

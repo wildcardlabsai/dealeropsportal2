@@ -70,7 +70,7 @@ export default function LeadList() {
     URL.revokeObjectURL(url);
   };
 
-  const pipelineStages = STAGE_ORDER.filter(s => s !== "sold" && s !== "lost");
+  const pipelineStages = STAGE_ORDER;
 
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
@@ -212,7 +212,14 @@ export default function LeadList() {
                     onDragStart={(e) => e.dataTransfer.setData("text/plain", `${lead.id}|${lead.stage}`)}
                     onClick={() => navigate(`/app/leads/${lead.id}`)}
                     className="p-3 rounded-lg border border-border/50 bg-card hover:bg-card/80 cursor-pointer transition-colors">
-                    <p className="text-sm font-medium truncate">{lead.first_name} {lead.last_name}</p>
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-sm font-medium truncate">{lead.first_name} {lead.last_name}</p>
+                      {lead.estimated_value && (
+                        <span className="shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-success/10 text-success border border-success/20">
+                          £{Number(lead.estimated_value).toLocaleString()}
+                        </span>
+                      )}
+                    </div>
                     <p className="text-xs text-muted-foreground truncate">
                       {lead.vehicles ? `${(lead.vehicles as any).vrm} – ${(lead.vehicles as any).make} ${(lead.vehicles as any).model}` : lead.vehicle_interest_text || "No vehicle"}
                     </p>
@@ -221,9 +228,6 @@ export default function LeadList() {
                         <Calendar className="h-3 w-3 inline mr-1" />
                         {format(new Date(lead.next_action_at), "d MMM")}
                       </p>
-                    )}
-                    {lead.estimated_value && (
-                      <p className="text-xs text-muted-foreground mt-1">£{Number(lead.estimated_value).toLocaleString()}</p>
                     )}
                   </div>
                 ))}

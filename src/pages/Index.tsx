@@ -8,6 +8,7 @@ import {
   Lock, Headphones, Globe, Zap, ChevronRight,
   ShieldCheck, Award, TrendingUp, Sparkles, Play
 } from "lucide-react";
+import dashboardPreview from "@/assets/dashboard-preview.png";
 
 /* ─── hero feature carousel ─── */
 
@@ -245,6 +246,23 @@ export default function Index() {
           </motion.div>
 
           <HeroFeatureShowcase />
+
+          {/* Product screenshot */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.5 }}
+            className="mt-12 max-w-5xl mx-auto"
+          >
+            <div className="rounded-2xl border border-border/40 bg-card/30 overflow-hidden shadow-2xl shadow-primary/10">
+              <img
+                src={dashboardPreview}
+                alt="DealerOps dashboard showing revenue, customers, vehicles, and leads overview"
+                className="w-full h-auto"
+                loading="lazy"
+              />
+            </div>
+          </motion.div>
         </div>
       </section>
 
@@ -423,8 +441,8 @@ export default function Index() {
         </div>
       </section>
 
-      {/* ═══ Testimonials ═══ */}
-      <section className="py-24 border-t border-border/30">
+      {/* ═══ Testimonials — horizontal carousel ═══ */}
+      <section className="py-24 border-t border-border/30 overflow-hidden">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
@@ -436,35 +454,39 @@ export default function Index() {
             </motion.div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {testimonials.map((t, i) => (
-              <motion.div
-                key={t.name}
-                custom={i}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                variants={fadeUp}
-                className="relative p-6 rounded-2xl border border-border/50 bg-card/30 hover:bg-card/50 transition-all duration-300"
-              >
-                <div className="absolute -top-3 left-6 text-4xl text-primary/20 font-serif">"</div>
-                <div className="flex gap-1 mb-4 pt-2">
-                  {[...Array(5)].map((_, j) => (
-                    <Star key={j} className="h-3.5 w-3.5 fill-warning text-warning" />
-                  ))}
-                </div>
-                <p className="text-sm text-foreground leading-relaxed mb-6">{t.quote}</p>
-                <div className="flex items-center gap-3 pt-4 border-t border-border/30">
-                  <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center text-xs font-bold text-primary shrink-0">
-                    {t.initials}
+          {/* Infinite scroll carousel */}
+          <div className="relative">
+            <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
+            <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
+            <motion.div
+              animate={{ x: ["0%", "-50%"] }}
+              transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+              className="flex gap-6"
+            >
+              {[...testimonials, ...testimonials].map((t, i) => (
+                <div
+                  key={`${t.name}-${i}`}
+                  className="relative shrink-0 w-[350px] p-6 rounded-2xl border border-border/50 bg-card/30"
+                >
+                  <div className="absolute -top-3 left-6 text-5xl text-primary/30 font-serif leading-none">"</div>
+                  <div className="flex gap-0.5 mb-4 pt-3">
+                    {[...Array(5)].map((_, j) => (
+                      <Star key={j} className="h-4 w-4 fill-warning text-warning" />
+                    ))}
                   </div>
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">{t.name}</p>
-                    <p className="text-xs text-muted-foreground">{t.role}, {t.dealership}</p>
+                  <p className="text-sm text-foreground leading-relaxed mb-6 min-h-[60px]">{t.quote}</p>
+                  <div className="flex items-center gap-3 pt-4 border-t border-border/30">
+                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center text-xs font-bold text-primary shrink-0">
+                      {t.initials}
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">{t.name}</p>
+                      <p className="text-xs text-muted-foreground">{t.role}, {t.dealership}</p>
+                    </div>
                   </div>
                 </div>
-              </motion.div>
-            ))}
+              ))}
+            </motion.div>
           </div>
         </div>
       </section>

@@ -193,6 +193,27 @@ export default function Login() {
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
+                {mode === "signup" && password.length > 0 && (() => {
+                  let score = 0;
+                  if (password.length >= 8) score++;
+                  if (password.length >= 12) score++;
+                  if (/[A-Z]/.test(password)) score++;
+                  if (/[0-9]/.test(password)) score++;
+                  if (/[^A-Za-z0-9]/.test(password)) score++;
+                  const labels = ["Very Weak", "Weak", "Fair", "Good", "Strong"];
+                  const colors = ["bg-destructive", "bg-destructive", "bg-warning", "bg-primary", "bg-success"];
+                  const idx = Math.min(score, 4);
+                  return (
+                    <div className="mt-2 space-y-1">
+                      <div className="flex gap-1">
+                        {[0, 1, 2, 3, 4].map(i => (
+                          <div key={i} className={`h-1 flex-1 rounded-full transition-colors ${i <= idx ? colors[idx] : 'bg-muted'}`} />
+                        ))}
+                      </div>
+                      <p className={`text-[10px] ${idx <= 1 ? 'text-destructive' : idx === 2 ? 'text-warning' : 'text-success'}`}>{labels[idx]}</p>
+                    </div>
+                  );
+                })()}
               </div>
             )}
 
