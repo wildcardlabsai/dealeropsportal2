@@ -24,15 +24,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    // IMPORTANT: Set up onAuthStateChange FIRST to handle subsequent auth events,
+    // but do NOT set loading=false here to avoid race conditions.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
-      setLoading(false);
 
       // Record login events to audit_logs for health dashboard tracking
       if (event === "SIGNED_IN" && session?.user) {
         const userId = session.user.id;
-        // Fetch dealer_id from profiles (use setTimeout to avoid Supabase auth deadlock)
+        // Use setTimeout to avoid Supabase auth deadlock
         setTimeout(async () => {
           const { data: profile } = await supabase
             .from("profiles")
@@ -53,6 +54,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     });
 
+    // getSession restores from storage — only set loading=false AFTER this resolves
+    // to ensure auth.uid() is available for RLS policies
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
