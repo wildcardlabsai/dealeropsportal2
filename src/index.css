@@ -137,4 +137,12 @@
   .glass-hover {
     @apply hover:bg-card/90 hover:border-border transition-all duration-300;
   }
+
+  .theme-light .glow {
+    box-shadow: 0 4px 14px hsl(217 91% 50% / 0.2);
+  }
+
+  .theme-light .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-[hsl(217,91%,50%)] to-[hsl(217,91%,65%)];
+  }
 }
