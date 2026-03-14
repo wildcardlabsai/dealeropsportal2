@@ -58,6 +58,49 @@
     --highlight: 38 90% 55%;
     --highlight-foreground: 38 10% 10%;
   }
+
+  /* Light theme for public marketing pages */
+  .theme-light {
+    --background: 0 0% 100%;
+    --foreground: 220 20% 14%;
+
+    --card: 220 20% 97%;
+    --card-foreground: 220 20% 14%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 14%;
+
+    --primary: 217 91% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 220 20% 30%;
+
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 10% 46%;
+
+    --accent: 220 14% 93%;
+    --accent-foreground: 220 20% 14%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 217 91% 50%;
+
+    --electric: 217 91% 50%;
+    --electric-glow: 217 91% 60%;
+    --electric-muted: 217 40% 85%;
+    --surface: 220 20% 97%;
+    --surface-hover: 220 20% 94%;
+    --success: 142 70% 40%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --highlight: 38 90% 55%;
+    --highlight-foreground: 38 10% 10%;
+  }
 }
 
 @layer base {

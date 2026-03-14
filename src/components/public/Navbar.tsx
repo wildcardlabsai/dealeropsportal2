@@ -25,10 +25,10 @@ export function Navbar() {
   }, []);
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-xl transition-all duration-300 ${
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
       scrolled
-        ? "bg-background/90 border-b border-border/50 shadow-lg shadow-background/20"
-        : "bg-background/60 border-b border-border/20"
+        ? "bg-background/95 backdrop-blur-md border-b border-border shadow-sm"
+        : "bg-background/80 backdrop-blur-sm border-b border-transparent"
     }`}>
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <Link to="/" className="flex items-center gap-2.5">
@@ -38,15 +38,15 @@ export function Navbar() {
           </span>
         </Link>
 
-        <div className="hidden md:flex items-center gap-0.5">
+        <div className="hidden md:flex items-center gap-1">
           {navLinks.map((link) => (
             <Link
               key={link.to}
               to={link.to}
-              className={`px-3.5 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+              className={`px-3.5 py-2 text-sm font-medium rounded-lg transition-colors ${
                 location.pathname === link.to
-                  ? "text-primary bg-primary/10"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  ? "text-primary"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               {link.label}
@@ -54,15 +54,15 @@ export function Navbar() {
           ))}
         </div>
 
-        <div className="hidden md:flex items-center gap-2.5">
-          <Link to="/login?mode=signup">
+        <div className="hidden md:flex items-center gap-3">
+          <Link to="/login">
             <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground font-medium">
-              Start Free Trial
+              Log In
             </Button>
           </Link>
-          <Link to="/login">
-            <Button size="sm" className="glow font-semibold">
-              Dealer Login
+          <Link to="/login?mode=signup">
+            <Button size="sm" className="font-semibold rounded-lg shadow-sm">
+              Try For Free
             </Button>
           </Link>
         </div>
@@ -81,7 +81,7 @@ export function Navbar() {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="md:hidden overflow-hidden border-t border-border/30 bg-background/95 backdrop-blur-xl"
+            className="md:hidden overflow-hidden border-t border-border bg-background"
           >
             <div className="p-4 space-y-1">
               {navLinks.map((link) => (
@@ -91,22 +91,22 @@ export function Navbar() {
                   onClick={() => setMobileOpen(false)}
                   className={`block px-4 py-2.5 text-sm font-medium rounded-lg transition-colors ${
                     location.pathname === link.to
-                      ? "text-primary bg-primary/10"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                      ? "text-primary bg-primary/5"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
                   }`}
                 >
                   {link.label}
                 </Link>
               ))}
-              <div className="pt-3 mt-2 border-t border-border/30 space-y-2">
-                <Link to="/login?mode=signup" onClick={() => setMobileOpen(false)}>
+              <div className="pt-3 mt-2 border-t border-border space-y-2">
+                <Link to="/login" onClick={() => setMobileOpen(false)}>
                   <Button variant="ghost" size="sm" className="w-full text-muted-foreground">
-                    Start Free Trial
+                    Log In
                   </Button>
                 </Link>
-                <Link to="/login" onClick={() => setMobileOpen(false)}>
-                  <Button size="sm" className="w-full glow">
-                    Dealer Login
+                <Link to="/login?mode=signup" onClick={() => setMobileOpen(false)}>
+                  <Button size="sm" className="w-full">
+                    Try For Free
                   </Button>
                 </Link>
               </div>
