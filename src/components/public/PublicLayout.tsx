@@ -7,7 +7,7 @@ export function PublicLayout() {
   const location = useLocation();
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="theme-light min-h-screen flex flex-col bg-background text-foreground">
       <Navbar />
       <main className="flex-1 pt-16">
         <AnimatePresence mode="wait">

@@ -1,60 +1,44 @@
 import { Link } from "react-router-dom";
 import doLogo from "@/assets/dologo.png";
-import { ShieldCheck, Lock, Globe, Award, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-const trustBadges = [
-  { icon: ShieldCheck, label: "GDPR" },
-  { icon: Lock, label: "Encrypted" },
-  { icon: Globe, label: "UK Hosted" },
-  { icon: Award, label: "ISO Ready" },
-];
 
 export function Footer() {
   return (
-    <footer className="border-t border-border/30 bg-muted/10">
-      {/* Mini CTA */}
-      <div className="border-b border-border/30 bg-gradient-to-r from-primary/[0.04] via-primary/[0.08] to-primary/[0.04]">
-        <div className="container mx-auto px-4 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+    <footer className="border-t border-border bg-muted/30">
+      {/* CTA banner */}
+      <div className="border-b border-border">
+        <div className="container mx-auto px-4 py-10 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div>
-            <h3 className="text-sm font-bold text-foreground">Ready to get started?</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">14-day free trial · No credit card required</p>
+            <h3 className="text-base font-bold text-foreground">Ready to modernise your dealership?</h3>
+            <p className="text-sm text-muted-foreground mt-1">14-day free trial · No credit card required</p>
           </div>
           <Link to="/login?mode=signup">
-            <Button size="sm" className="glow font-semibold">
-              Start Free Trial <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+            <Button className="font-semibold">
+              Start Free Trial <ArrowRight className="ml-1.5 h-4 w-4" />
             </Button>
           </Link>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-14">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-10">
-          {/* Brand column */}
-          <div className="md:col-span-4">
+      <div className="container mx-auto px-4 py-12">
+        <div className="grid grid-cols-2 md:grid-cols-12 gap-8">
+          {/* Brand */}
+          <div className="col-span-2 md:col-span-4">
             <Link to="/" className="flex items-center gap-2 mb-4">
-              <img src={doLogo} alt="DealerOps logo" className="h-8 w-8 object-contain" />
+              <img src={doLogo} alt="DealerOps logo" className="h-7 w-7 object-contain" />
               <span className="text-lg font-bold text-foreground">
                 Dealer<span className="text-primary">Ops</span>
               </span>
             </Link>
-            <p className="text-sm text-muted-foreground mb-5 leading-relaxed max-w-xs">
+            <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
               The complete dealer management system for UK independent car dealerships.
             </p>
-            {/* Trust badges inline */}
-            <div className="flex items-center gap-3">
-              {trustBadges.map((badge) => (
-                <div key={badge.label} className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-card/50 border border-border/30">
-                  <badge.icon className="h-3 w-3 text-primary" />
-                  <span className="text-[10px] font-semibold text-muted-foreground">{badge.label}</span>
-                </div>
-              ))}
-            </div>
           </div>
 
           {/* Platform */}
           <div className="md:col-span-2">
-            <h4 className="text-xs font-bold text-foreground uppercase tracking-widest mb-4">Platform</h4>
+            <h4 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4">Platform</h4>
             <ul className="space-y-2.5">
               {["Features", "Pricing", "Security"].map((item) => (
                 <li key={item}>
@@ -68,7 +52,7 @@ export function Footer() {
 
           {/* Support */}
           <div className="md:col-span-2">
-            <h4 className="text-xs font-bold text-foreground uppercase tracking-widest mb-4">Support</h4>
+            <h4 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4">Support</h4>
             <ul className="space-y-2.5">
               {[
                 { label: "Knowledge Base", to: "/help" },
@@ -86,7 +70,7 @@ export function Footer() {
 
           {/* Legal */}
           <div className="md:col-span-2">
-            <h4 className="text-xs font-bold text-foreground uppercase tracking-widest mb-4">Legal</h4>
+            <h4 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4">Legal</h4>
             <ul className="space-y-2.5">
               <li>
                 <Link to="/privacy" className="text-sm text-muted-foreground hover:text-primary transition-colors">
@@ -103,7 +87,7 @@ export function Footer() {
 
           {/* Get Started */}
           <div className="md:col-span-2">
-            <h4 className="text-xs font-bold text-foreground uppercase tracking-widest mb-4">Get Started</h4>
+            <h4 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4">Get Started</h4>
             <ul className="space-y-2.5">
               <li>
                 <Link to="/login?mode=signup" className="text-sm text-primary hover:text-primary/80 font-medium transition-colors">
@@ -119,12 +103,12 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-12 pt-6 border-t border-border/30 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="mt-10 pt-6 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-muted-foreground">
             © 2026 DealerOps. All rights reserved.
           </p>
           <div className="flex items-center gap-4">
-            <Link to="/app" className="text-xs text-muted-foreground/40 hover:text-muted-foreground transition-colors">
+            <Link to="/app" className="text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors">
               Admin
             </Link>
             <p className="text-xs text-muted-foreground">
