@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import {
-  Users, Car, FileText, Wrench, Target, Shield, Clock, CheckCircle2, AlertCircle,
+  Users, Car, FileText, Wrench, Target, Shield, CheckCircle2, AlertCircle,
   Plus, ArrowUpRight, ArrowDownRight, Minus, Megaphone, ShieldAlert, TrendingUp,
   PoundSterling
 } from "lucide-react";
@@ -9,7 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserDealerId } from "@/hooks/useCustomers";
-import { format, isToday, isPast, subDays, startOfMonth, endOfMonth, subMonths } from "date-fns";
+import { format, isToday, isPast, startOfMonth, endOfMonth, subMonths } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
@@ -81,12 +81,12 @@ function useLeadFunnel() {
       const counts: Record<string, number> = {};
       (data || []).forEach(l => { counts[l.status] = (counts[l.status] || 0) + 1; });
       return [
-        { stage: "New", count: counts["new"] || 0, color: "bg-primary" },
-        { stage: "Contacted", count: counts["contacted"] || 0, color: "bg-blue-500" },
-        { stage: "Viewing", count: counts["viewing"] || 0, color: "bg-amber-500" },
-        { stage: "Negotiating", count: counts["negotiating"] || 0, color: "bg-orange-500" },
-        { stage: "Won", count: counts["won"] || 0, color: "bg-emerald-500" },
-        { stage: "Lost", count: counts["lost"] || 0, color: "bg-destructive" },
+        { stage: "New", count: counts["new"] || 0 },
+        { stage: "Contacted", count: counts["contacted"] || 0 },
+        { stage: "Viewing", count: counts["viewing"] || 0 },
+        { stage: "Negotiating", count: counts["negotiating"] || 0 },
+        { stage: "Won", count: counts["won"] || 0 },
+        { stage: "Lost", count: counts["lost"] || 0 },
       ];
     },
     enabled: !!dealerId,
@@ -109,10 +109,10 @@ function useStockAgeing() {
         else over90++;
       });
       return [
-        { label: "0–30 days", count: under30, color: "bg-emerald-500" },
-        { label: "31–60 days", count: under60, color: "bg-amber-500" },
-        { label: "61–90 days", count: under90, color: "bg-orange-500" },
-        { label: "90+ days", count: over90, color: "bg-destructive" },
+        { label: "0–30 days", count: under30 },
+        { label: "31–60 days", count: under60 },
+        { label: "61–90 days", count: under90 },
+        { label: "90+ days", count: over90 },
       ];
     },
     enabled: !!dealerId,
@@ -267,21 +267,19 @@ function useMonthComparison() {
 }
 
 const priorityColors: Record<string, string> = {
-  low: "text-muted-foreground", medium: "text-blue-500", high: "text-warning", urgent: "text-destructive",
-};
-
-const announcementPriority: Record<string, string> = {
-  low: "border-border/50", normal: "border-primary/30 bg-primary/5", high: "border-warning/30 bg-warning/5", urgent: "border-destructive/30 bg-destructive/5",
+  low: "text-muted-foreground", medium: "text-primary", high: "text-warning", urgent: "text-destructive",
 };
 
 function MoMIndicator({ current, previous }: { current: number; previous: number }) {
   if (previous === 0 && current === 0) return <Minus className="h-3 w-3 text-muted-foreground" />;
-  if (previous === 0) return <ArrowUpRight className="h-3 w-3 text-emerald-500" />;
+  if (previous === 0) return <ArrowUpRight className="h-3 w-3 text-success" />;
   const pct = ((current - previous) / previous) * 100;
-  if (pct > 0) return <span className="flex items-center gap-0.5 text-xs text-emerald-500"><ArrowUpRight className="h-3 w-3" />+{Math.round(pct)}%</span>;
+  if (pct > 0) return <span className="flex items-center gap-0.5 text-xs text-success"><ArrowUpRight className="h-3 w-3" />+{Math.round(pct)}%</span>;
   if (pct < 0) return <span className="flex items-center gap-0.5 text-xs text-destructive"><ArrowDownRight className="h-3 w-3" />{Math.round(pct)}%</span>;
   return <Minus className="h-3 w-3 text-muted-foreground" />;
 }
+
+/* ─── Dashboard ─── */
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -312,13 +310,13 @@ export default function Dashboard() {
 
   const firstName = profile?.first_name || user?.user_metadata?.first_name || "";
 
-  const cards = [
-    { label: "Customers", value: stats?.customers ?? 0, icon: Users, mom: mom ? { current: mom.customersThis, previous: mom.customersLast } : null },
-    { label: "Vehicles in Stock", value: stats?.vehiclesInStock ?? 0, icon: Car, mom: null },
-    { label: "Open Leads", value: stats?.openLeads ?? 0, icon: Target, mom: mom ? { current: mom.leadsThis, previous: mom.leadsLast } : null },
-    { label: "Invoices", value: stats?.invoices ?? 0, icon: FileText, mom: null },
-    { label: "Aftersales Open", value: stats?.aftersalesOpen ?? 0, icon: Wrench, mom: null },
-    { label: "Active Warranties", value: stats?.activeWarranties ?? 0, icon: Shield, mom: null },
+  const statCards = [
+    { label: "Customers", value: stats?.customers ?? 0, icon: Users, color: "bg-primary/10 text-primary", mom: mom ? { current: mom.customersThis, previous: mom.customersLast } : null },
+    { label: "Vehicles in Stock", value: stats?.vehiclesInStock ?? 0, icon: Car, color: "bg-success/10 text-success", mom: null },
+    { label: "Open Leads", value: stats?.openLeads ?? 0, icon: Target, color: "bg-warning/10 text-warning", mom: mom ? { current: mom.leadsThis, previous: mom.leadsLast } : null },
+    { label: "Invoices", value: stats?.invoices ?? 0, icon: FileText, color: "bg-primary/10 text-primary", mom: null },
+    { label: "Aftersales Open", value: stats?.aftersalesOpen ?? 0, icon: Wrench, color: "bg-warning/10 text-warning", mom: null },
+    { label: "Active Warranties", value: stats?.activeWarranties ?? 0, icon: Shield, color: "bg-success/10 text-success", mom: null },
   ];
 
   const quickActions = [
@@ -328,12 +326,11 @@ export default function Dashboard() {
     { label: "New Task", url: "/app/tasks/new", icon: Plus },
   ];
 
-  const maxFunnel = Math.max(...(funnel?.map(f => f.count) || [1]));
   const totalStock = (ageing || []).reduce((s, a) => s + a.count, 0);
 
   return (
     <div>
-      {/* Announcements banner */}
+      {/* Announcements */}
       {announcements && announcements.length > 0 && (
         <div className="mb-6 space-y-2">
           {announcements.map(a => (
@@ -341,28 +338,28 @@ export default function Dashboard() {
               key={a.id}
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className={`flex items-start gap-3 p-3 rounded-lg border ${announcementPriority[a.priority] || "border-border/50"}`}
+              className="flex items-start gap-3 p-3 rounded-lg border border-primary/20 bg-primary/5"
             >
               <Megaphone className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-              <div className="min-w-0">
-                <p className="text-sm font-medium">{a.title}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-foreground">{a.title}</p>
                 <p className="text-xs text-muted-foreground line-clamp-1">{a.message}</p>
               </div>
-              <span className="text-xs text-muted-foreground whitespace-nowrap ml-auto">{format(new Date(a.created_at), "d MMM")}</span>
+              <span className="text-xs text-muted-foreground whitespace-nowrap">{format(new Date(a.created_at), "d MMM")}</span>
             </motion.div>
           ))}
         </div>
       )}
 
-      {/* Greeting + Quick Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold">{getGreeting()}, {firstName}</h1>
-          <p className="text-sm text-muted-foreground">Here's your dealership at a glance</p>
+          <h1 className="text-2xl font-bold text-foreground">{getGreeting()}, {firstName}</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Here's your dealership at a glance</p>
         </div>
         <div className="flex gap-2 flex-wrap">
           {quickActions.map(qa => (
-            <Button key={qa.label} size="sm" variant="outline" onClick={() => navigate(qa.url)} className="gap-1.5">
+            <Button key={qa.label} size="sm" variant="outline" onClick={() => navigate(qa.url)} className="gap-1.5 text-xs">
               <qa.icon className="h-3.5 w-3.5" />
               {qa.label}
             </Button>
@@ -370,38 +367,38 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Revenue card + stat cards */}
+      {/* Revenue + Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {/* Revenue card - spans 2 cols on lg */}
+        {/* Revenue card spans 2 */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="sm:col-span-2 p-5 rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent"
+          className="sm:col-span-2 p-5 rounded-xl border border-border bg-background"
         >
-          <div className="flex items-center gap-2 mb-2">
-            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-              <PoundSterling className="h-4 w-4 text-primary" />
+          <div className="flex items-center gap-2 mb-3">
+            <div className="h-9 w-9 rounded-lg bg-success/10 flex items-center justify-center">
+              <PoundSterling className="h-4 w-4 text-success" />
             </div>
             <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Revenue This Month</span>
           </div>
-          <p className="text-3xl font-bold">£{(revenue?.thisMonth ?? 0).toLocaleString("en-GB", { minimumFractionDigits: 2 })}</p>
-          <div className="flex items-center gap-2 mt-1">
+          <p className="text-3xl font-bold text-foreground">£{(revenue?.thisMonth ?? 0).toLocaleString("en-GB", { minimumFractionDigits: 2 })}</p>
+          <div className="flex items-center gap-2 mt-1.5">
             {revenue && <MoMIndicator current={revenue.thisMonth} previous={revenue.lastMonth} />}
-            <span className="text-xs text-muted-foreground">vs last month (£{(revenue?.lastMonth ?? 0).toLocaleString("en-GB", { minimumFractionDigits: 2 })})</span>
+            <span className="text-xs text-muted-foreground">vs last month</span>
           </div>
         </motion.div>
 
-        {cards.slice(0, 2).map((stat, i) => (
+        {statCards.slice(0, 2).map((stat, i) => (
           <motion.div
             key={stat.label}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: (i + 1) * 0.04 }}
-            className="p-4 rounded-xl border border-border/50 bg-card/50"
+            transition={{ delay: (i + 1) * 0.05 }}
+            className="p-5 rounded-xl border border-border bg-background"
           >
             <div className="flex items-center justify-between mb-3">
-              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                <stat.icon className="h-4 w-4 text-primary" />
+              <div className={`h-9 w-9 rounded-lg flex items-center justify-center ${stat.color}`}>
+                <stat.icon className="h-4 w-4" />
               </div>
               {stat.mom && <MoMIndicator current={stat.mom.current} previous={stat.mom.previous} />}
             </div>
@@ -411,18 +408,18 @@ export default function Dashboard() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {cards.slice(2).map((stat, i) => (
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+        {statCards.slice(2).map((stat, i) => (
           <motion.div
             key={stat.label}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: (i + 3) * 0.04 }}
-            className="p-4 rounded-xl border border-border/50 bg-card/50"
+            transition={{ delay: (i + 3) * 0.05 }}
+            className="p-5 rounded-xl border border-border bg-background"
           >
             <div className="flex items-center justify-between mb-3">
-              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                <stat.icon className="h-4 w-4 text-primary" />
+              <div className={`h-9 w-9 rounded-lg flex items-center justify-center ${stat.color}`}>
+                <stat.icon className="h-4 w-4" />
               </div>
               {stat.mom && <MoMIndicator current={stat.mom.current} previous={stat.mom.previous} />}
             </div>
@@ -432,24 +429,22 @@ export default function Dashboard() {
         ))}
       </div>
 
+      {/* Charts row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-        <div className="p-6 rounded-xl border border-border/50 bg-card/50">
+        <div className="p-6 rounded-xl border border-border bg-background">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold">Lead Conversion Funnel</h3>
+            <h3 className="text-sm font-semibold text-foreground">Lead Conversion Funnel</h3>
             <button onClick={() => navigate("/app/leads")} className="text-xs text-primary hover:underline">View all</button>
           </div>
           {funnel && funnel.length > 0 ? (
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={funnel} layout="vertical" margin={{ left: 20, right: 10, top: 0, bottom: 0 }}>
                 <XAxis type="number" hide />
-                <YAxis type="category" dataKey="stage" tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }} width={80} axisLine={false} tickLine={false} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
-                  cursor={{ fill: "hsl(var(--muted) / 0.3)" }}
-                />
+                <YAxis type="category" dataKey="stage" tick={{ fontSize: 12, fill: "hsl(220, 10%, 46%)" }} width={80} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={{ backgroundColor: "hsl(0, 0%, 100%)", border: "1px solid hsl(220, 13%, 91%)", borderRadius: 8, fontSize: 12 }} />
                 <Bar dataKey="count" radius={[0, 6, 6, 0]} barSize={18}>
-                  {funnel.map((entry, index) => {
-                    const colors = ["hsl(var(--primary))", "#3b82f6", "#f59e0b", "#f97316", "#10b981", "hsl(var(--destructive))"];
+                  {funnel.map((_, index) => {
+                    const colors = ["hsl(217, 91%, 50%)", "#3b82f6", "#f59e0b", "#f97316", "#10b981", "#ef4444"];
                     return <Cell key={index} fill={colors[index % colors.length]} />;
                   })}
                 </Bar>
@@ -460,46 +455,34 @@ export default function Dashboard() {
           )}
         </div>
 
-        <div className="p-6 rounded-xl border border-border/50 bg-card/50">
+        <div className="p-6 rounded-xl border border-border bg-background">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold">Stock Ageing</h3>
+            <h3 className="text-sm font-semibold text-foreground">Stock Ageing</h3>
             <span className="text-xs text-muted-foreground">{totalStock} vehicles</span>
           </div>
           {ageing && totalStock > 0 ? (
             <div className="flex items-center gap-6">
               <ResponsiveContainer width="50%" height={180}>
                 <PieChart>
-                  <Pie
-                    data={ageing}
-                    dataKey="count"
-                    nameKey="label"
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={40}
-                    outerRadius={70}
-                    strokeWidth={2}
-                    stroke="hsl(var(--background))"
-                  >
+                  <Pie data={ageing} dataKey="count" nameKey="label" cx="50%" cy="50%" innerRadius={40} outerRadius={70} strokeWidth={2} stroke="hsl(0, 0%, 100%)">
                     {ageing.map((_, index) => {
-                      const colors = ["#10b981", "#f59e0b", "#f97316", "hsl(var(--destructive))"];
+                      const colors = ["#10b981", "#f59e0b", "#f97316", "#ef4444"];
                       return <Cell key={index} fill={colors[index % colors.length]} />;
                     })}
                   </Pie>
-                  <Tooltip
-                    contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
-                  />
+                  <Tooltip contentStyle={{ backgroundColor: "hsl(0, 0%, 100%)", border: "1px solid hsl(220, 13%, 91%)", borderRadius: 8, fontSize: 12 }} />
                 </PieChart>
               </ResponsiveContainer>
-              <div className="space-y-2.5 flex-1">
+              <div className="space-y-3 flex-1">
                 {ageing.map((bucket, i) => {
-                  const colors = ["bg-emerald-500", "bg-amber-500", "bg-orange-500", "bg-destructive"];
+                  const dotColors = ["bg-success", "bg-warning", "bg-orange-500", "bg-destructive"];
                   return (
                     <div key={bucket.label} className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <div className={`h-2.5 w-2.5 rounded-full ${colors[i]}`} />
+                        <div className={`h-2.5 w-2.5 rounded-full ${dotColors[i]}`} />
                         <span className="text-xs text-muted-foreground">{bucket.label}</span>
                       </div>
-                      <span className="text-xs font-medium">{bucket.count}</span>
+                      <span className="text-xs font-semibold text-foreground">{bucket.count}</span>
                     </div>
                   );
                 })}
@@ -509,7 +492,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-center h-[180px] text-sm text-muted-foreground">No stock data</div>
           )}
           {(ageing?.[3]?.count ?? 0) > 0 && (
-            <div className="mt-3 p-2 rounded-lg bg-destructive/5 border border-destructive/20">
+            <div className="mt-3 p-2.5 rounded-lg bg-destructive/5 border border-destructive/20">
               <p className="text-xs text-destructive flex items-center gap-1.5">
                 <AlertCircle className="h-3.5 w-3.5" />
                 {ageing![3].count} vehicle{ageing![3].count !== 1 ? "s" : ""} over 90 days — consider repricing
@@ -519,30 +502,30 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Recent Sales + Compliance Health */}
+      {/* Recent Sales + Compliance */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-        <div className="lg:col-span-2 p-6 rounded-xl border border-border/50 bg-card/50">
+        <div className="lg:col-span-2 p-6 rounded-xl border border-border bg-background">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold">Recent Sales</h3>
+            <h3 className="text-sm font-semibold text-foreground">Recent Sales</h3>
             <button onClick={() => navigate("/app/invoices")} className="text-xs text-primary hover:underline">View all</button>
           </div>
           {recentSales?.length ? (
-            <div className="space-y-3">
+            <div className="space-y-1">
               {recentSales.map((inv: any) => (
-                <div key={inv.id} className="flex items-center justify-between text-sm cursor-pointer hover:bg-muted/30 rounded-lg p-2 -mx-2 transition-colors" onClick={() => navigate(`/app/invoices/${inv.id}`)}>
+                <div key={inv.id} className="flex items-center justify-between text-sm cursor-pointer hover:bg-muted/50 rounded-lg p-2.5 -mx-1 transition-colors" onClick={() => navigate(`/app/invoices/${inv.id}`)}>
                   <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                      <PoundSterling className="h-3.5 w-3.5 text-emerald-500" />
+                    <div className="h-9 w-9 rounded-lg bg-success/10 flex items-center justify-center">
+                      <PoundSterling className="h-4 w-4 text-success" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium">{inv.invoice_number}</p>
+                      <p className="text-sm font-medium text-foreground">{inv.invoice_number}</p>
                       <p className="text-xs text-muted-foreground">
                         {inv.customers ? `${inv.customers.first_name} ${inv.customers.last_name}` : "—"}
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-semibold">£{(inv.total ?? 0).toLocaleString("en-GB", { minimumFractionDigits: 2 })}</p>
+                    <p className="text-sm font-semibold text-foreground">£{(inv.total ?? 0).toLocaleString("en-GB", { minimumFractionDigits: 2 })}</p>
                     <p className="text-xs text-muted-foreground">{inv.invoice_date ? format(new Date(inv.invoice_date), "d MMM") : ""}</p>
                   </div>
                 </div>
@@ -553,31 +536,31 @@ export default function Dashboard() {
           )}
         </div>
 
-        <div className="p-6 rounded-xl border border-border/50 bg-card/50">
-          <h3 className="text-sm font-semibold mb-4">Compliance Health</h3>
+        <div className="p-6 rounded-xl border border-border bg-background">
+          <h3 className="text-sm font-semibold text-foreground mb-4">Compliance Health</h3>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <ShieldAlert className="h-4 w-4 text-warning" />
-                <span className="text-sm">Open Complaints</span>
+                <span className="text-sm text-foreground">Open Complaints</span>
               </div>
-              <span className={`text-lg font-bold ${(compliance?.openComplaints ?? 0) > 0 ? "text-warning" : "text-emerald-500"}`}>
+              <span className={`text-lg font-bold ${(compliance?.openComplaints ?? 0) > 0 ? "text-warning" : "text-success"}`}>
                 {compliance?.openComplaints ?? 0}
               </span>
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Shield className="h-4 w-4 text-primary" />
-                <span className="text-sm">Open DSRs</span>
+                <span className="text-sm text-foreground">Open DSRs</span>
               </div>
-              <span className={`text-lg font-bold ${(compliance?.openDSRs ?? 0) > 0 ? "text-warning" : "text-emerald-500"}`}>
+              <span className={`text-lg font-bold ${(compliance?.openDSRs ?? 0) > 0 ? "text-warning" : "text-success"}`}>
                 {compliance?.openDSRs ?? 0}
               </span>
             </div>
             {(compliance?.openComplaints ?? 0) === 0 && (compliance?.openDSRs ?? 0) === 0 ? (
-              <div className="p-3 rounded-lg bg-emerald-500/5 border border-emerald-500/20 text-center">
-                <CheckCircle2 className="h-5 w-5 text-emerald-500 mx-auto mb-1" />
-                <p className="text-xs text-emerald-600">All clear — no outstanding items</p>
+              <div className="p-3 rounded-lg bg-success/5 border border-success/20 text-center">
+                <CheckCircle2 className="h-5 w-5 text-success mx-auto mb-1" />
+                <p className="text-xs text-success">All clear — no outstanding items</p>
               </div>
             ) : (
               <Button size="sm" variant="outline" className="w-full" onClick={() => navigate("/app/compliance")}>
@@ -590,10 +573,10 @@ export default function Dashboard() {
 
       {/* Activity + Tasks */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="p-6 rounded-xl border border-border/50 bg-card/50">
-          <h3 className="text-sm font-semibold mb-4">Recent Activity</h3>
+        <div className="p-6 rounded-xl border border-border bg-background">
+          <h3 className="text-sm font-semibold text-foreground mb-4">Recent Activity</h3>
           {recentActivity?.length ? (
-            <div className="relative pl-4 border-l-2 border-border/50 space-y-4">
+            <div className="relative pl-4 border-l-2 border-border space-y-4">
               {recentActivity.map((log) => {
                 const label = ACTION_LABELS[log.action_type] || log.action_type.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
                 const entityLabel = log.entity_type ? (ENTITY_LABELS[log.entity_type] || log.entity_type.replace(/_/g, " ")) : null;
@@ -601,7 +584,7 @@ export default function Dashboard() {
                   <div key={log.id} className="relative">
                     <div className="absolute -left-[21px] top-1 h-3 w-3 rounded-full bg-primary/20 border-2 border-primary" />
                     <div>
-                      <p className="text-sm font-medium">{label}</p>
+                      <p className="text-sm font-medium text-foreground">{label}</p>
                       {entityLabel && <p className="text-xs text-muted-foreground">{entityLabel}</p>}
                       <p className="text-xs text-muted-foreground">{format(new Date(log.created_at), "d MMM HH:mm")}</p>
                     </div>
@@ -614,20 +597,20 @@ export default function Dashboard() {
           )}
         </div>
 
-        <div className="p-6 rounded-xl border border-border/50 bg-card/50">
+        <div className="p-6 rounded-xl border border-border bg-background">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold">Tasks Due</h3>
+            <h3 className="text-sm font-semibold text-foreground">Tasks Due</h3>
             <button onClick={() => navigate("/app/tasks")} className="text-xs text-primary hover:underline">View all</button>
           </div>
           {todayTasks?.length ? (
-            <div className="relative pl-4 border-l-2 border-border/50 space-y-4">
+            <div className="relative pl-4 border-l-2 border-border space-y-4">
               {todayTasks.map((task) => {
                 const overdue = task.due_date && isPast(new Date(task.due_date)) && !isToday(new Date(task.due_date));
                 return (
                   <div key={task.id} className="relative">
                     <div className={`absolute -left-[21px] top-1 h-3 w-3 rounded-full border-2 ${overdue ? "bg-destructive/20 border-destructive" : "bg-warning/20 border-warning"}`} />
                     <div>
-                      <p className="text-sm font-medium">{task.title}</p>
+                      <p className="text-sm font-medium text-foreground">{task.title}</p>
                       <div className="flex items-center gap-2">
                         <span className={`text-xs ${priorityColors[task.priority]}`}>{task.priority}</span>
                         {task.due_date && (
