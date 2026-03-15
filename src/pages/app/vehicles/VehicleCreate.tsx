@@ -12,6 +12,8 @@ import { useUserDealerId, useCustomers } from "@/hooks/useCustomers";
 import { toast } from "sonner";
 import VrmLookup, { VrmLookupResult } from "@/components/app/VrmLookup";
 
+const NO_CUSTOMER_VALUE = "__no_customer__";
+
 export default function VehicleCreate() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
