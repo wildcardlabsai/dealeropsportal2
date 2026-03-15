@@ -101,10 +101,13 @@ export default function VehicleCreate() {
           <h3 className="text-sm font-semibold">Customer Allocation <span className="text-muted-foreground font-normal">(optional)</span></h3>
           <div>
             <Label className="text-xs">Assign to Customer</Label>
-            <Select value={customerId} onValueChange={setCustomerId}>
+            <Select
+              value={customerId || NO_CUSTOMER_VALUE}
+              onValueChange={(value) => setCustomerId(value === NO_CUSTOMER_VALUE ? "" : value)}
+            >
               <SelectTrigger className="mt-1"><SelectValue placeholder="No customer assigned" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="">No customer</SelectItem>
+                <SelectItem value={NO_CUSTOMER_VALUE}>No customer</SelectItem>
                 {customers?.map((c: any) => (
                   <SelectItem key={c.id} value={c.id}>{c.first_name} {c.last_name}{c.phone ? ` · ${c.phone}` : ""}</SelectItem>
                 ))}
